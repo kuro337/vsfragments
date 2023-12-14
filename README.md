@@ -65,7 +65,7 @@ _Native System Tool for creating Code Fragments that can also be embedded into r
 
 <br/>
 
-`Usage`
+**Usage**
 
 <br/>
 
@@ -103,14 +103,32 @@ pub fn main() !void {
 # Convenient Drop-In JSON Serializer 
 ./vsfragments /hello.zig -p zig-app --lang zig
 
-# Now in VSCode start typing Cmd+Space+zig-app / Ctrl+Space+zig-app and the Code Fragment gets Pasted!
+# Now in VSCode , start typing 
+# Cmd+Space+zig-app / Ctrl+Space+zig-app and the Code Fragment gets Pasted!
+
 # Happy Coding!
 ```
 
 <br/>
 
+<hr/>
 
-Resulting Snippet that is added as a Zig Code Fragment 
+_Begin typing the shortcut & the fragment is pasted into your IDE!_
+
+Mac
+- ⌘ *cmd* `+` *space* `+`  *zig-app* 
+
+ <br/>
+
+Windows
+- *ctrl* `+` *space* `+`  *zig-app*  
+
+<hr/>
+
+<br/>
+
+
+Resulting Snippet that VSCode uses as a Zig Code Fragment 
   
 <br/>
 
