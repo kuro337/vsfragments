@@ -48,11 +48,13 @@ _100% Zig Native System Tool for creating Code Fragments that can also be embedd
 
 <hr/>
 
-- Do you use write a lot of Code? Do you use VSCode? Have you ever used Code Snippets on VSCode?
+<br/>
+
+- Write a lot of code & use VSCode? 
 
 <br/>
 
-- If you use VSCode - highly recommend using VSCode Code Snippets - check out their [official overview](https://code.visualstudio.com/docs/editor/userdefinedsnippets).
+- Highly recommend using VSCode Code Snippets - check out their [official overview](https://code.visualstudio.com/docs/editor/userdefinedsnippets).
 
 
 <br/>
