@@ -5,8 +5,8 @@ const ArrayList = std.ArrayList;
 const test_allocator = std.testing.allocator;
 const eql = std.mem.eql;
 const Thread = std.Thread;
-const readLinesFromFile = @import("readLinesFromFile").readLinesFromFile;
-const clearSliceMatrixMemory = @import("clearSliceMatrixMemory").clearSliceMatrixMemory;
+const readLinesFromFile = @import("read_lines").readLinesFromFile;
+const clearSliceMatrixMemory = @import("memory_mgmt").clearSliceMatrixMemory;
 const Snippet = @import("snippet").Snippet;
 const Coord = @import("coord").Coord;
 

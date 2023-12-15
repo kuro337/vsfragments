@@ -1,0 +1,66 @@
+{
+  "Zig Hello World": {
+    "prefix": "zig-app",
+    "body": [
+      "const std = @import(\"std\");",
+      "",
+      "pub fn main() !void {",
+      "    std.debug.print(\"{s}\\n\", .{\"Hello, world!\"});",
+      "}",
+      "",
+      "// zig build-exe vector.zig",
+      "// ./vector",
+      "// zig test file.zig"
+    ],
+    "description": "Zig Hello World Application"
+  },
+  "Zig Print Type": {
+    "prefix": "zig-print-type",
+    "body": [
+      "const print = @import(\"std\").debug.print;",
+      "print(\"{}\\n\", .{@TypeOf(adjList)});"
+    ],
+    "description": "Zig Hello World Application"
+  },
+  "Profile Binary": {
+    "prefix": "profile-binary",
+    "body": [
+      "# Profile a Binary - signs it and runs using Instruments - check zsh alias heap",
+      "heap ./zig-out/bin/djikstra-small"
+    ],
+    "description": "Profile a Binary - signs it and runs using Instruments - check zsh alias heap"
+  },
+  "Print to console": {
+    "prefix": "log",
+    "body": ["console.log('$1');"],
+    "description": "Log output to console"
+  },
+  "Test Parser": {
+    "prefix": "testparse",
+    "body": [
+      "# Threading OS Threads",
+      "",
+      "```rust",
+      "const std = @import(\"std\");",
+      "const expect = std.testing.expect;",
+      "const print = std.debug.print;",
+      "const ArrayList = std.ArrayList;",
+      "const test_allocator = std.testing.allocator;",
+      "const eql = std.mem.eql;",
+      "const Thread = std.Thread;",
+      "",
+      "pub fn main() !void {",
+      "\tstd.debug.print(\"{s}\\n\", .{\"Hello, world!\"});",
+      "}",
+      "```"
+    ],
+    "description": "Log output to console"
+  },
+  "Delete File Catch Err": {
+    "prefix": "zig-delete-file",
+    "body": [
+      "defer std.fs.cwd().deleteFile(\"junk_file.txt\") catch @panic(\"faieled to delete file\");"
+    ],
+    "description": "Log output to console"
+  }
+}

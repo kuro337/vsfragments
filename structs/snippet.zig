@@ -13,17 +13,19 @@ pub const Snippet = struct {
         _: std.fmt.FormatOptions,
         writer: anytype,
     ) !void {
-        try writer.print("{s}\n{s}\n\"body\": [\n", .{ snippet.title, snippet.prefix });
+        try writer.print(",\n\t{s}\n\t\t{s}\n\t\t\"body\": [\n", .{ snippet.title, snippet.prefix });
         for (snippet.body) |parsed_line| {
-            try writer.print("  {s}\n", .{parsed_line});
+            try writer.print("\t\t\t{s}\n", .{parsed_line});
         }
-        try writer.print("],\n{s}\n}}\n", .{snippet.description});
+        try writer.print("\t\t],\n\t\t{s}\n\t}}\n", .{snippet.description});
     }
 
     pub fn fromLinesAutoMemory(allocator: *const std.mem.Allocator, lines: [][]const u8) !Snippet {
         var parsedLines = std.ArrayList([]const u8).init(allocator.*);
 
-        for (lines) |line| {
+        const totalLines = lines.len;
+
+        for (lines, 0..) |line, i| {
             var escapedLineBuilder = std.ArrayList(u8).init(allocator.*);
             defer escapedLineBuilder.deinit();
 
@@ -61,19 +63,23 @@ pub const Snippet = struct {
                 }
             }
 
-            // Add closing quote and comma
+            // Add closing quote
             try escapedLineBuilder.append('\"');
-            try escapedLineBuilder.append(',');
+
+            // Add comma except for the last line
+            if (i < totalLines - 1) {
+                try escapedLineBuilder.append(',');
+            }
 
             const finalEscapedLine = try escapedLineBuilder.toOwnedSlice();
             try parsedLines.append(finalEscapedLine);
         }
 
         return Snippet{
-            .title = "\"Zig Snippet\":{",
+            .title = "\"Zig Snippet\": {",
             .prefix = "\"prefix\": \"testparse\",",
             .body = try parsedLines.toOwnedSlice(),
-            .description = "\"description\":\"Log output to console\"",
+            .description = "\"description\": \"Log output to console\"",
         };
     }
 
@@ -154,10 +160,10 @@ pub const Snippet = struct {
             try parsedLines.append(parsed_line_known_size[0..j]);
         }
         return Snippet{
-            .title = "\"Zig Snippet\":{",
+            .title = "\"Zig Snippet\": {",
             .prefix = "\"prefix\": \"testparse\",",
             .body = try parsedLines.toOwnedSlice(),
-            .description = "\"description\":\"Log output to console\"",
+            .description = "\"description\": \"Log output to console\"",
         };
     }
 };

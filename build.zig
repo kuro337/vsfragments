@@ -10,21 +10,50 @@ const test_targets = [_]std.zig.CrossTarget{
 
 // =================== MODULES ===================
 
-fn addCommonModules(b: *std.Build, zig_test: *std.build.LibExeObjStep) void {
-    const json_parser = b.addModule("json_parser", .{ .source_file = .{ .path = "json_parser.zig" } });
-    const snippet = b.addModule("structs", .{ .source_file = .{ .path = "structs/snippet.zig" } });
-    const coord = b.addModule("structs", .{ .source_file = .{ .path = "structs/coord.zig" } });
+fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
+    const flags = b.addModule("flags", .{ .source_file = .{ .path = "structs/flags.zig" } });
+    const snippet = b.addModule("snippet", .{ .source_file = .{ .path = "structs/snippet.zig" } });
+    const read_lines = b.addModule("read_lines", .{ .source_file = .{ .path = "utils/read_lines.zig" } });
+    const coord = b.addModule("coord", .{ .source_file = .{ .path = "structs/coord.zig" } });
+    const memory_mgmt = b.addModule("memory_mgmt", .{ .source_file = .{ .path = "utils/memory_mgmt.zig" } });
 
-    const checkMemoryLeaks = b.addModule("checkMemoryLeaks", .{ .source_file = .{ .path = "utils/memory_mgmt.zig" } });
-    const clearSliceMatrixMemory = b.addModule("clearSliceMatrixMemory", .{ .source_file = .{ .path = "utils/memory_mgmt.zig" } });
-    const readLinesFromFile = b.addModule("readLinesFromFile", .{ .source_file = .{ .path = "utils/read_lines.zig" } });
+    const clap = b.addModule("clap", .{ .source_file = .{ .path = "../zig-clap/clap.zig" } });
 
-    zig_test.addModule("json_parser", json_parser);
-    zig_test.addModule("snippet", snippet);
-    zig_test.addModule("coord", coord);
-    zig_test.addModule("checkMemoryLeaks", checkMemoryLeaks);
-    zig_test.addModule("clearSliceMatrixMemory", clearSliceMatrixMemory);
-    zig_test.addModule("readLinesFromFile", readLinesFromFile);
+    const json_parser = b.createModule(.{
+        .source_file = .{ .path = "core/json_parser.zig" },
+        .dependencies = &.{
+            .{ .name = "snippet", .module = snippet },
+            .{ .name = "memory_mgmt", .module = memory_mgmt },
+            .{ .name = "read_lines", .module = read_lines },
+        },
+    });
+
+    const modify_snippet = b.addModule("modify_snippet", .{
+        .source_file = .{ .path = "core/modify_snippet.zig" },
+        .dependencies = &.{
+            .{ .name = "snippet", .module = snippet },
+            .{ .name = "memory_mgmt", .module = memory_mgmt },
+        },
+    });
+
+    const cli_parser = b.addModule("cli_parser", .{
+        .source_file = .{ .path = "core/cli_parser.zig" },
+        .dependencies = &.{
+            .{ .name = "clap", .module = clap },
+            .{ .name = "flags", .module = flags },
+            .{ .name = "memory_mgmt", .module = memory_mgmt },
+        },
+    });
+
+    exe.addModule("flags", flags);
+    exe.addModule("snippet", snippet);
+    exe.addModule("coord", coord);
+    exe.addModule("read_lines", read_lines);
+    exe.addModule("memory_mgmt", memory_mgmt);
+    exe.addModule("json_parser", json_parser);
+    exe.addModule("modify_snippet", modify_snippet);
+    exe.addModule("cli_parser", cli_parser);
+    exe.addModule("clap", clap);
 }
 
 // =================== BUILD ===================
@@ -55,6 +84,18 @@ pub fn build(b: *std.Build) void {
 
         const run_read_parse_tests = b.addRunArtifact(read_parse_tests);
         test_step.dependOn(&run_read_parse_tests.step);
+
+        // =================== CLI PARSING TESTS ===================
+        const cli_parsing_tests = b.addTest(.{
+            .root_source_file = .{ .path = "tests/cli_flags_tests.zig" },
+            .target = target,
+        });
+
+        addCommonModules(b, cli_parsing_tests);
+        //addZigClapFromSource(b, cli_parsing_tests);
+
+        const run_cli_parsing_tests = b.addRunArtifact(cli_parsing_tests);
+        test_step.dependOn(&run_cli_parsing_tests.step);
     }
 
     // =================== BINARIES ===================
@@ -65,6 +106,8 @@ pub fn build(b: *std.Build) void {
         .optimize = .ReleaseFast,
     });
 
+    //addZigClapFromSource(b, exe);
+    addCommonModules(b, exe);
     b.installArtifact(exe);
 
     const exe_safe = b.addExecutable(.{
@@ -73,6 +116,8 @@ pub fn build(b: *std.Build) void {
         .optimize = .ReleaseSafe,
     });
 
+    //addZigClapFromSource(b, exe_safe);
+    addCommonModules(b, exe_safe);
     b.installArtifact(exe_safe);
 
     const exe_debug = b.addExecutable(.{
@@ -81,6 +126,8 @@ pub fn build(b: *std.Build) void {
         .optimize = .Debug,
     });
 
+    //addZigClapFromSource(b, exe_debug);
+    addCommonModules(b, exe_debug);
     b.installArtifact(exe_debug);
 
     const exe_small = b.addExecutable(.{
@@ -89,6 +136,8 @@ pub fn build(b: *std.Build) void {
         .optimize = .ReleaseSmall,
     });
 
+    //addZigClapFromSource(b, exe_small);
+    addCommonModules(b, exe_small);
     b.installArtifact(exe_small);
 }
 
@@ -96,7 +145,7 @@ pub fn build(b: *std.Build) void {
 
 // $ zig build  --summary all
 
-// cd /Users/kuro/Documents/Code/Zig/FileIO/parser/zig-out/bin && ./vsznippet-safe
+// cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/bin && ./vsznippet-safe
 
 // Optimization Options  between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall
 

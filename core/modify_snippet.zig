@@ -1,21 +1,8 @@
 const std = @import("std");
 const print = std.debug.print;
-const checkMemoryLeaks = @import("utils/memory_mgmt.zig").checkMemoryLeaks;
 
-pub fn main() !void {
-    std.debug.print("{s}\n", .{"Find Pos to Insert Snippet"});
-
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-
-    defer _ = gpa.deinit();
-    defer checkMemoryLeaks(&gpa);
-
-    const file_path = "/Users/kuro/Documents/Code/Zig/FileIO/parser/mock/empty.code-snippets";
-    const position = try findPositionToInsert(&allocator, file_path);
-
-    std.debug.print("Position of second last '}}': {}\n", .{position});
-}
+const checkMemoryLeaks = @import("memory_mgmt").checkMemoryLeaks;
+const Snippet = @import("snippet").Snippet;
 
 pub fn findPositionToInsert(allocator: *const std.mem.Allocator, file_path: []const u8) !usize {
     const file = try std.fs.cwd().openFile(file_path, .{});
@@ -89,16 +76,57 @@ pub fn readFilefindPositionToInsert(buffer: []const u8, read_start_pos: usize, f
     }
 }
 
-test "Read File and Find Pos of Insertion Position" {
+test "Populated File - Read File and Find Pos of Insertion Position" {
     var allocator = std.testing.allocator;
+
+    const file_path = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/mock/populated.code-snippets";
+    const position = try findPositionToInsert(&allocator, file_path);
+
+    std.debug.print("Position of second last '}}': {}\n", .{position});
+}
+
+pub fn writeSnippetToFileAtByteOffset(allocator: *const std.mem.Allocator, snippet: Snippet, file_path: []const u8, position: usize) !void {
+    _ = allocator;
+    // Open the file
+    const file = try std.fs.openFileAbsolute(file_path, .{ .mode = .read_write });
+    defer file.close();
+
+    // Seek to the desired position
+    try file.seekTo(position + 1);
+
+    // Write the snippet to the file
+    // Define an empty FormatOptions struct
+    const formatOptions = std.fmt.FormatOptions{};
+
+    // Write the snippet to the file
+    try snippet.format("", formatOptions, file.writer());
+
+    _ = try file.write("}"); // for now manually add the last newline + }
+}
+
+test "Empty File - Read File and Find Pos of Insertion Position" {
+    var allocator = std.testing.allocator;
+
+    const file_path = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/mock/empty.code-snippets";
+    const position = try findPositionToInsert(&allocator, file_path);
+
+    std.debug.print("Position of second last '}}': {}\n", .{position});
+}
+// zig build-exe modify_snippet.zig
+// ./modify_snippet
+// zig test modify_snippet.zig
+
+pub fn main() !void {
+    std.debug.print("{s}\n", .{"Find Pos to Insert Snippet"});
+
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+
+    defer _ = gpa.deinit();
+    defer checkMemoryLeaks(&gpa);
 
     const file_path = "/Users/kuro/Documents/Code/Zig/FileIO/parser/mock/empty.code-snippets";
     const position = try findPositionToInsert(&allocator, file_path);
-
-    if (position == 0) {
-        print("File is empty, has only comments, or has less than 2 closing braces\n", .{});
-    }
-    try readFilefindPositionToInsert(&allocator, position, file_path);
 
     std.debug.print("Position of second last '}}': {}\n", .{position});
 }
