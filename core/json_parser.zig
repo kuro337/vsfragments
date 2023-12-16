@@ -12,6 +12,14 @@ const clearSliceMatrixMemory = @import("memory_mgmt").clearSliceMatrixMemory;
 
 const readLinesFromFile = @import("read_lines").readLinesFromFile;
 
+pub fn transformTextToFragment(allocator: *const std.mem.Allocator, code_str: []const []const u8) !Snippet {
+    const snippet = try Snippet.fromInlineCodeBlock(allocator, code_str);
+
+    print("{s}\n\n{s}\nSuccessfully Parsed to Snippet.\nTransformed Snippet:\n{s}\n{s}\n{s}\n", .{ stdout_result_limiter, stdout_section_limiter, stdout_result_limiter, snippet, stdout_section_limiter });
+
+    return snippet;
+}
+
 pub fn transformFileToSnippet(allocator: *const std.mem.Allocator, file_path: []const u8) !Snippet {
     const linesArrayList = try readLinesFromFile(allocator, file_path);
 

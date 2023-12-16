@@ -73,8 +73,9 @@ pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
 
     // ALL FLAGS  ./vsznippet-fast -h -f f -o o -l l -r r -t t -d d -p -c aaaaa qqq
 
-    // ! IMPORTANT : Multiline Flags need to be positional
+    // ! IMPORTANT : Multiline Flags need to be positional and can only be passed as Single Arg
 
+    // -c code -h help -f file -o outputfile -l lang -r prefix -t title -d description -p
     const params = comptime clap.parseParamsComptime(
         \\-c, --code        <string>... Code stringing for direct input.
         \\-h, --help                    Display this help and exit.
@@ -83,7 +84,7 @@ pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
         \\-l, --lang        <string>    Language specification.
         \\-r, --prefix       <string>    Optional prefix for snippet.
         \\-t, --title       <string>    Optional title for snippet.
-        \\-d, --description <string>    Optional description for snippet.
+        \\-d, --desc        <string>    Optional description for snippet.
         \\-p, --print                   Flag for printing output.
         \\ 
     );
@@ -102,8 +103,11 @@ pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
     };
     defer res.deinit();
 
-    if (res.args.help != 0)
-        try clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
+    var inline_code_passed = false;
+
+    if (res.args.code.len > 0) {
+        inline_code_passed = true;
+    }
 
     return Flags{
         .file_path = if (res.args.file) |f| f else null,
@@ -112,8 +116,9 @@ pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
         .lang = if (res.args.lang) |l| l else null,
         .prefix = if (res.args.prefix) |r| r else null,
         .title = if (res.args.title) |t| t else null,
-        .description = if (res.args.description) |d| d else null,
+        .description = if (res.args.desc) |d| d else null,
         .help = if (res.args.help == 1) true else false,
         .print = if (res.args.print == 1) true else false,
+        .inline_code = inline_code_passed,
     };
 }

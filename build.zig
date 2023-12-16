@@ -1,12 +1,106 @@
 const std = @import("std");
 
-const test_targets = [_]std.zig.CrossTarget{
-    .{},
-    .{
-        .cpu_arch = .aarch64,
-        .os_tag = .macos,
-    },
+const build_targets = [_]std.zig.CrossTarget{ .{}, .{
+    .cpu_arch = .aarch64,
+    .os_tag = .macos,
+}, .{
+    .cpu_arch = .x86_64,
+    .os_tag = .linux,
+}, .{
+    .cpu_arch = .x86_64,
+    .os_tag = .windows,
+} };
+
+const BuildConfig = struct {
+    name: []const u8,
+    optimize: std.builtin.OptimizeMode,
 };
+
+const build_configs = [_]BuildConfig{
+    .{ .name = "fast", .optimize = .ReleaseFast },
+    .{ .name = "safe", .optimize = .ReleaseSafe },
+    .{ .name = "debug", .optimize = .Debug },
+    .{ .name = "small", .optimize = .ReleaseSmall },
+};
+
+const test_targets = [_]std.zig.CrossTarget{ .{}, .{
+    .cpu_arch = .aarch64,
+    .os_tag = .macos,
+} };
+
+// =================== BUILD ===================
+
+pub fn build(b: *std.Build) !void {
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    const test_step = b.step("test", "Run unit tests");
+
+    for (test_targets) |target| {
+        const unit_tests = b.addTest(.{
+            .root_source_file = .{ .path = "tests/unit_tests.zig" },
+            .target = target,
+        });
+
+        // =================== UNIT TESTS ===================
+
+        addCommonModules(b, unit_tests);
+
+        const run_unit_tests = b.addRunArtifact(unit_tests);
+        test_step.dependOn(&run_unit_tests.step);
+
+        // =================== READ + PARSING TESTS ===================
+        const read_parse_tests = b.addTest(.{
+            .root_source_file = .{ .path = "tests/read_parse_test.zig" },
+            .target = target,
+        });
+
+        addCommonModules(b, read_parse_tests);
+
+        const run_read_parse_tests = b.addRunArtifact(read_parse_tests);
+        test_step.dependOn(&run_read_parse_tests.step);
+
+        // =================== CLI PARSING TESTS ===================
+        const cli_parsing_tests = b.addTest(.{
+            .root_source_file = .{ .path = "tests/cli_flags_tests.zig" },
+            .target = target,
+        });
+
+        addCommonModules(b, cli_parsing_tests);
+        //addZigClapFromSource(b, cli_parsing_tests);
+
+        const run_cli_parsing_tests = b.addRunArtifact(cli_parsing_tests);
+        test_step.dependOn(&run_cli_parsing_tests.step);
+    }
+
+    // =================== BINARIES for TARGET + OPTIMIZATION_MODE ===================
+
+    for (build_targets) |target| {
+        for (build_configs) |config| {
+            const exe_name = try std.mem.concat(allocator, u8, &[_][]const u8{ "vsfragment", "_", config.name });
+
+            const exe = b.addExecutable(.{
+                .name = exe_name,
+                .root_source_file = .{ .path = "main.zig" },
+                .optimize = config.optimize,
+                .target = target,
+            });
+
+            addCommonModules(b, exe);
+
+            const target_output = b.addInstallArtifact(exe, .{
+                .dest_dir = .{
+                    .override = .{
+                        .custom = try target.zigTriple(b.allocator),
+                    },
+                },
+            });
+
+            b.getInstallStep().dependOn(&target_output.step);
+        }
+    }
+}
 
 // =================== MODULES ===================
 
@@ -56,97 +150,15 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
     exe.addModule("clap", clap);
 }
 
-// =================== BUILD ===================
-
-pub fn build(b: *std.Build) void {
-    const test_step = b.step("test", "Run unit tests");
-
-    for (test_targets) |target| {
-        const unit_tests = b.addTest(.{
-            .root_source_file = .{ .path = "tests/unit_tests.zig" },
-            .target = target,
-        });
-
-        // =================== UNIT TESTS ===================
-
-        addCommonModules(b, unit_tests);
-
-        const run_unit_tests = b.addRunArtifact(unit_tests);
-        test_step.dependOn(&run_unit_tests.step);
-
-        // =================== READ + PARSING TESTS ===================
-        const read_parse_tests = b.addTest(.{
-            .root_source_file = .{ .path = "tests/read_parse_test.zig" },
-            .target = target,
-        });
-
-        addCommonModules(b, read_parse_tests);
-
-        const run_read_parse_tests = b.addRunArtifact(read_parse_tests);
-        test_step.dependOn(&run_read_parse_tests.step);
-
-        // =================== CLI PARSING TESTS ===================
-        const cli_parsing_tests = b.addTest(.{
-            .root_source_file = .{ .path = "tests/cli_flags_tests.zig" },
-            .target = target,
-        });
-
-        addCommonModules(b, cli_parsing_tests);
-        //addZigClapFromSource(b, cli_parsing_tests);
-
-        const run_cli_parsing_tests = b.addRunArtifact(cli_parsing_tests);
-        test_step.dependOn(&run_cli_parsing_tests.step);
-    }
-
-    // =================== BINARIES ===================
-
-    const exe = b.addExecutable(.{
-        .name = "vsznippet-fast",
-        .root_source_file = .{ .path = "main.zig" },
-        .optimize = .ReleaseFast,
-    });
-
-    //addZigClapFromSource(b, exe);
-    addCommonModules(b, exe);
-    b.installArtifact(exe);
-
-    const exe_safe = b.addExecutable(.{
-        .name = "vsznippet-safe",
-        .root_source_file = .{ .path = "main.zig" },
-        .optimize = .ReleaseSafe,
-    });
-
-    //addZigClapFromSource(b, exe_safe);
-    addCommonModules(b, exe_safe);
-    b.installArtifact(exe_safe);
-
-    const exe_debug = b.addExecutable(.{
-        .name = "vsznippet-debug",
-        .root_source_file = .{ .path = "main.zig" },
-        .optimize = .Debug,
-    });
-
-    //addZigClapFromSource(b, exe_debug);
-    addCommonModules(b, exe_debug);
-    b.installArtifact(exe_debug);
-
-    const exe_small = b.addExecutable(.{
-        .name = "vsznippet-small",
-        .root_source_file = .{ .path = "main.zig" },
-        .optimize = .ReleaseSmall,
-    });
-
-    //addZigClapFromSource(b, exe_small);
-    addCommonModules(b, exe_small);
-    b.installArtifact(exe_small);
-}
-
 // $ zig build test --summary all
 
 // $ zig build  --summary all
 
-// cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/bin && ./vsznippet-safe
+// cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/native && ./vsfragment_safe
 
 // Optimization Options  between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall
 
 // zig build -Dtarget=x86_64-windows -Doptimize=ReleaseSmall --summary all
+
+// Print File Architecture ARM or x86_64
+// file filename

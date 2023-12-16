@@ -83,6 +83,68 @@ pub const Snippet = struct {
         };
     }
 
+    pub fn fromInlineCodeBlock(allocator: *const std.mem.Allocator, lines: []const []const u8) !Snippet {
+        var parsedLines = std.ArrayList([]const u8).init(allocator.*);
+
+        const totalLines = lines.len;
+
+        for (lines, 0..) |line, i| {
+            var escapedLineBuilder = std.ArrayList(u8).init(allocator.*);
+            defer escapedLineBuilder.deinit();
+
+            // Add opening quote
+            try escapedLineBuilder.append('\"');
+
+            var spaceCount: usize = 0;
+            for (line) |char| {
+                switch (char) {
+                    ' ' => {
+                        spaceCount += 1;
+                        if (spaceCount == 4) {
+                            try escapedLineBuilder.append('\\');
+                            try escapedLineBuilder.append('t');
+                            spaceCount = 0;
+                        }
+                    },
+                    '\\' => {
+                        try escapedLineBuilder.append('\\');
+                        try escapedLineBuilder.append('\\');
+                    },
+                    '$', '"' => {
+                        try escapedLineBuilder.append('\\');
+                        try escapedLineBuilder.append(char);
+                    },
+                    else => {
+                        if (spaceCount > 0 and spaceCount < 4) {
+                            while (spaceCount > 0) {
+                                try escapedLineBuilder.append(' ');
+                                spaceCount -= 1;
+                            }
+                        }
+                        try escapedLineBuilder.append(char);
+                    },
+                }
+            }
+
+            // Add closing quote
+            try escapedLineBuilder.append('\"');
+
+            // Add comma except for the last line
+            if (i < totalLines - 1) {
+                try escapedLineBuilder.append(',');
+            }
+
+            const finalEscapedLine = try escapedLineBuilder.toOwnedSlice();
+            try parsedLines.append(finalEscapedLine);
+        }
+
+        return Snippet{
+            .title = "\"Zig Snippet\": {",
+            .prefix = "\"prefix\": \"testparse\",",
+            .body = try parsedLines.toOwnedSlice(),
+            .description = "\"description\": \"Log output to console\"",
+        };
+    }
     pub fn fromLinesManualMemory(allocator: *const std.mem.Allocator, lines: [][]const u8) !Snippet {
         var parsedLines = std.ArrayList([]const u8).init(allocator.*);
 

@@ -11,6 +11,37 @@ pub const Flags = struct {
     title: ?[]const u8 = null, // Optional title for snippet
     description: ?[]const u8 = null, // Optional description for snippet
     prefix: ?[]const u8 = null, // Optional prefix for snippet
+    inline_code: bool = false, // Internal Flag to Detect if Inline Code Passed
+
+    pub fn evaluateFlags(self: Flags) u8 {
+
+        // passed no file or direct code
+        if (self.file_path == null and self.code_str == null) {
+            return 0;
+        }
+
+        // passed file but no output
+        if (self.file_path != null and self.output_path == null) {
+            return 1;
+        }
+
+        // passed file and output path
+        if (self.file_path != null and self.output_path != null) {
+            return 2;
+        }
+
+        // passed Code Directly
+        if (self.inline_code == true) {
+            return 3;
+        }
+
+        return 0;
+    }
+    pub fn checkFileFlags(self: Flags) void {
+        if (self.file_path == null) {
+            print("Use -f to point to a File to convert to a Fragment.\n", .{});
+        }
+    }
 
     pub fn format(
         self: Flags,
@@ -29,6 +60,48 @@ pub const Flags = struct {
         if (self.prefix) |p| try writer.print("  Prefix: {s}\n", .{p});
         if (self.code_str) |cs|
             for (cs) |line| try writer.print("  Code String: {s}\n", .{line});
+    }
+
+    pub fn printHelp(self: Flags) void {
+        _ = self;
+
+        const help_str =
+            \\
+            \\vsfragment - Convert a VSCode Snippet File to a Fragment
+            \\
+            \\Usage: vsfragment [flags]
+            \\
+            \\| Create vsfragment
+            \\./vsfragment -f anyfile.md
+            \\
+            \\| Create vsfragment & Update Snippets File (recommended usage paste text into a file and use -f flag)
+            \\./vsfragment -f httpserver.go -o /users/snippets/go.code-snippets
+            \\
+            \\| Pass Code Directly through your Shell and get the fragment
+            \\
+            \\./vsfragment -c "import csv
+            \\input_file_path = "input.txt"  # Replace with your input file path
+            \\output_file_path = "output.csv"  # Replace with your desired output CSV file path
+            \\with open(input_file_path, "r") as infile, open(output_file_path, "w", newline="") as outfile:
+            \\    reader = csv.reader(infile, delimiter="|")
+            \\    writer = csv.writer(outfile)
+            \\    for row in reader:
+            \\        writer.writerow(row)" 
+            \\
+            \\===========================================================
+            \\Flags:
+            \\  -f, --file    <file path>     Path to a VSCode Snippet File
+            \\  -o, --output <file_path>     Path to an Existing VSCode Snippets File or Empty File
+            \\  -c, --code   <string...>    Code String to convert. Supports Multiline.
+            \\  -l, --lang   <language>     Language of the Code String
+            \\  -p, --print                 Print the Fragment to stdout
+            \\  -h, --help                  Print this help message
+            \\  --prefix      <prefix>        Prefix for the Fragment
+            \\  --title      <title>        Title for the Fragment
+            \\  --desc       <description>  Description for the Fragment
+            \\===========================================================
+        ;
+        print("{s}\n", .{help_str});
     }
 };
 
