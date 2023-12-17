@@ -110,8 +110,19 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
     const read_lines = b.addModule("read_lines", .{ .source_file = .{ .path = "utils/read_lines.zig" } });
     const coord = b.addModule("coord", .{ .source_file = .{ .path = "structs/coord.zig" } });
     const memory_mgmt = b.addModule("memory_mgmt", .{ .source_file = .{ .path = "utils/memory_mgmt.zig" } });
+    const constants = b.addModule("constants", .{ .source_file = .{ .path = "constants/cli_constants.zig" } });
 
-    const clap = b.addModule("clap", .{ .source_file = .{ .path = "../zig-clap/clap.zig" } });
+    const write_results = b.addModule("write_results", .{
+        .source_file = .{ .path = "utils/write_results.zig" },
+        .dependencies = &.{
+            .{ .name = "snippet", .module = snippet },
+            .{ .name = "constants", .module = constants },
+        },
+    });
+
+    const clap = b.addModule("clap", .{
+        .source_file = .{ .path = "../zig-clap/clap.zig" },
+    });
 
     const json_parser = b.createModule(.{
         .source_file = .{ .path = "core/json_parser.zig" },
@@ -119,6 +130,7 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
             .{ .name = "snippet", .module = snippet },
             .{ .name = "memory_mgmt", .module = memory_mgmt },
             .{ .name = "read_lines", .module = read_lines },
+            .{ .name = "constants", .module = constants },
         },
     });
 
@@ -127,6 +139,14 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
         .dependencies = &.{
             .{ .name = "snippet", .module = snippet },
             .{ .name = "memory_mgmt", .module = memory_mgmt },
+            .{ .name = "constants", .module = constants },
+        },
+    });
+
+    const create_file = b.addModule("create_file", .{
+        .source_file = .{ .path = "utils/create_file.zig" },
+        .dependencies = &.{
+            .{ .name = "snippet", .module = snippet },
         },
     });
 
@@ -136,6 +156,7 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
             .{ .name = "clap", .module = clap },
             .{ .name = "flags", .module = flags },
             .{ .name = "memory_mgmt", .module = memory_mgmt },
+            .{ .name = "constants", .module = constants },
         },
     });
 
@@ -148,6 +169,9 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
     exe.addModule("modify_snippet", modify_snippet);
     exe.addModule("cli_parser", cli_parser);
     exe.addModule("clap", clap);
+    exe.addModule("constants", constants);
+    exe.addModule("write_results", write_results);
+    exe.addModule("create_file", create_file);
 }
 
 // $ zig build test --summary all

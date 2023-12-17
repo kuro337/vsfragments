@@ -77,7 +77,7 @@ pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
 
     // -c code -h help -f file -o outputfile -l lang -r prefix -t title -d description -p
     const params = comptime clap.parseParamsComptime(
-        \\-c, --code        <string>... Code stringing for direct input.
+        \\-c, --code        <string>    Code stringing for direct input.
         \\-h, --help                    Display this help and exit.
         \\-f, --file         <string>    File path for input to be converted.
         \\-o, --output      <string>    File path for output.
@@ -86,6 +86,7 @@ pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
         \\-t, --title       <string>    Optional title for snippet.
         \\-d, --desc        <string>    Optional description for snippet.
         \\-p, --print                   Flag for printing output.
+        \\-y, --y                       Confirmation Flag for creating the Snippets File.
         \\ 
     );
 
@@ -103,22 +104,16 @@ pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
     };
     defer res.deinit();
 
-    var inline_code_passed = false;
-
-    if (res.args.code.len > 0) {
-        inline_code_passed = true;
-    }
-
     return Flags{
         .file_path = if (res.args.file) |f| f else null,
         .output_path = if (res.args.output) |o| o else null,
-        .code_str = res.args.code,
+        .code_str = if (res.args.code) |c| c else null,
         .lang = if (res.args.lang) |l| l else null,
         .prefix = if (res.args.prefix) |r| r else null,
         .title = if (res.args.title) |t| t else null,
         .description = if (res.args.desc) |d| d else null,
         .help = if (res.args.help == 1) true else false,
         .print = if (res.args.print == 1) true else false,
-        .inline_code = inline_code_passed,
+        .confirmation = if (res.args.y == 1) true else false,
     };
 }

@@ -4,7 +4,20 @@ const print = std.debug.print;
 const checkMemoryLeaks = @import("memory_mgmt").checkMemoryLeaks;
 const Snippet = @import("snippet").Snippet;
 
-pub fn findPositionToInsert(allocator: *const std.mem.Allocator, file_path: []const u8) !usize {
+pub fn checkFileExists(file_path: []const u8) !bool {
+    if (std.fs.cwd().openFile(file_path, .{})) |file| {
+        defer file.close();
+        return true;
+    } else |err| switch (err) {
+        error.FileNotFound => {
+            // print("\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n", .{});
+            return false;
+        },
+        else => |leftover_err| return leftover_err,
+    }
+}
+
+pub fn findPositionToInsert(allocator: std.mem.Allocator, file_path: []const u8) !usize {
     const file = try std.fs.cwd().openFile(file_path, .{});
     defer file.close();
 
@@ -21,8 +34,6 @@ pub fn findPositionToInsert(allocator: *const std.mem.Allocator, file_path: []co
     // Read the file content into the buffer
     _ = try file.readAll(buffer);
     const snippet_insertion_pos = findSecondLastBracePosition(buffer);
-
-    try readFilefindPositionToInsert(buffer, snippet_insertion_pos, fileSize);
 
     return snippet_insertion_pos;
 }
@@ -85,14 +96,20 @@ test "Populated File - Read File and Find Pos of Insertion Position" {
     std.debug.print("Position of second last '}}': {}\n", .{position});
 }
 
-pub fn writeSnippetToFileAtByteOffset(allocator: *const std.mem.Allocator, snippet: Snippet, file_path: []const u8, position: usize) !void {
+pub fn writeSnippetToFileAtByteOffset(allocator: std.mem.Allocator, snippet: Snippet, file_path: []const u8, position: usize) !void {
     _ = allocator;
     // Open the file
     const file = try std.fs.openFileAbsolute(file_path, .{ .mode = .read_write });
     defer file.close();
 
-    // Seek to the desired position
-    try file.seekTo(position + 1);
+    if (position == 0) {
+        try file.writeAll("{\n");
+    } else {
+        // Seek to the desired position
+        try file.seekTo(position + 1);
+        _ = try file.write(",\n"); // for now manually add the last newline + }
+
+    }
 
     // Write the snippet to the file
     // Define an empty FormatOptions struct

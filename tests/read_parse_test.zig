@@ -30,14 +30,15 @@ test "Test Reading File and Transforming to Snippet" {
         .prefix = "\"prefix\": \"testparse\",",
         .description = "\"description\": \"Log output to console\"",
         .body = &expected_transformed_lines,
+        .create_flag = false,
     };
 
     const allocator = std.testing.allocator;
 
-    const linesArrayList = try readLinesFromFile(&std.testing.allocator, "tests/testfile.txt");
+    const linesArrayList = try readLinesFromFile(std.testing.allocator, "tests/testfile.txt");
     defer clearSliceMatrixMemory(linesArrayList, &allocator);
 
-    const transformedSnippet = try Snippet.fromLinesAutoMemory(&allocator, linesArrayList);
+    const transformedSnippet = try Snippet.fromLinesAutoMemory(allocator, linesArrayList);
     defer clearSliceMatrixMemory(transformedSnippet.body, &allocator);
 
     print("Snippet:\n{}\n", .{transformedSnippet});

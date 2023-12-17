@@ -12,55 +12,35 @@ const clearSliceMatrixMemory = @import("memory_mgmt").clearSliceMatrixMemory;
 
 const readLinesFromFile = @import("read_lines").readLinesFromFile;
 
-pub fn transformTextToFragment(allocator: *const std.mem.Allocator, code_str: []const []const u8) !Snippet {
-    const snippet = try Snippet.fromInlineCodeBlock(allocator, code_str);
-
-    print("{s}\n\n{s}\nSuccessfully Parsed to Snippet.\nTransformed Snippet:\n{s}\n{s}\n{s}\n", .{ stdout_result_limiter, stdout_section_limiter, stdout_result_limiter, snippet, stdout_section_limiter });
-
-    return snippet;
-}
-
-pub fn transformFileToSnippet(allocator: *const std.mem.Allocator, file_path: []const u8) !Snippet {
-    const linesArrayList = try readLinesFromFile(allocator, file_path);
-
-    defer clearSliceMatrixMemory(linesArrayList, allocator);
-
-    print("{s}\nSuccessfully Buffered Bytes from Disk to Memory.\n{s}\nContent Read:\n{s}\n", .{ stdout_section_limiter, stdout_section_limiter, stdout_result_limiter });
-
-    for (linesArrayList) |line| {
-        print("{s}\n", .{line});
-    }
-
-    const snippet = try Snippet.fromLinesAutoMemory(allocator, linesArrayList);
-
-    print("{s}\n\n{s}\nSuccessfully Parsed to Snippet.\nTransformed Snippet:\n{s}\n{s}\n{s}\n", .{ stdout_result_limiter, stdout_section_limiter, stdout_result_limiter, snippet, stdout_section_limiter });
-
-    return snippet;
-}
-
 const stdout_section_limiter = "===================";
 const stdout_result_limiter = "_____________________";
 
-// pub fn main() !void {
-//     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-//     const allocator = gpa.allocator();
+pub fn convertInlineCodeToLines(allocator: std.mem.Allocator, code_str: []const u8) ![][]const u8 {
+    var splitLines = std.ArrayList([]const u8).init(allocator);
+    defer splitLines.deinit();
 
-//     defer _ = gpa.deinit();
-//     defer checkMemoryLeaks(&gpa);
+    var split = std.mem.splitScalar(u8, code_str, '\n');
 
-//     const linesArrayList = try readLinesFromFile(&allocator, "testfile.txt");
+    while (split.next()) |line| {
+        try splitLines.append(line);
+    }
 
-//     defer clearSliceMatrixMemory(linesArrayList, &allocator);
+    return splitLines.toOwnedSlice();
+}
 
-//     print("{s}\nSuccessfully Buffered Bytes from Disk to Memory.\n{s}\nContent Read:\n{s}\n", .{ stdout_section_limiter, stdout_section_limiter, stdout_result_limiter });
+pub fn transformTextToFragment(allocator: std.mem.Allocator, code_str: []const []const u8) !Snippet {
+    const snippet = try Snippet.createFromLines(allocator, code_str, false);
 
-//     for (linesArrayList) |line| {
-//         print("{s}\n", .{line});
-//     }
+    // print("\n{s}\n\x1b[92mSuccessfully Created Fragment.\x1b[0m\n{s}\n{}\n{s}\n", .{ stdout_section_limiter, stdout_result_limiter, snippet, stdout_section_limiter });
 
-//     const snippet = try Snippet.fromLinesAutoMemory(&allocator, linesArrayList);
+    return snippet;
+}
 
-//     defer clearSliceMatrixMemory(snippet.body, &allocator);
+// testing type change of  linesArrayList
+pub fn transformFileToFragment(allocator: std.mem.Allocator, file_path: []const u8, create: bool) !Snippet {
+    const linesArrayList = try readLinesFromFile(allocator, file_path);
 
-//     print("{s}\n\n{s}\nSuccessfully Parsed to Snippet.\nTransformed Snippet:\n{s}\n{s}\n{s}\n", .{ stdout_result_limiter, stdout_section_limiter, stdout_result_limiter, snippet, stdout_section_limiter });
-// }
+    const snippet = try Snippet.createFromLines(allocator, linesArrayList, create);
+
+    return snippet;
+}

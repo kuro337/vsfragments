@@ -4,14 +4,15 @@ const print = std.debug.print;
 pub const Flags = struct {
     file_path: ?[]const u8 = null, // Optional file path for input
     output_path: ?[]const u8 = null, // Optional file path for output
-    code_str: ?[]const []const u8 = null, // Optional code string for direct input
+    //code_str: ?[]const []const u8 = null, // Optional code string for direct input
+    code_str: ?[]const u8 = null, // Optional code string for direct input
     lang: ?[]const u8 = null, // Optional language specification
     help: bool = false, // Flag for printing output
     print: bool = false, // Flag for printing output
     title: ?[]const u8 = null, // Optional title for snippet
     description: ?[]const u8 = null, // Optional description for snippet
     prefix: ?[]const u8 = null, // Optional prefix for snippet
-    inline_code: bool = false, // Internal Flag to Detect if Inline Code Passed
+    confirmation: bool = false, // Internal Flag to Detect if Inline Code Passed
 
     pub fn evaluateFlags(self: Flags) u8 {
 
@@ -31,7 +32,7 @@ pub const Flags = struct {
         }
 
         // passed Code Directly
-        if (self.inline_code == true) {
+        if (self.code_str != null) {
             return 3;
         }
 
@@ -58,8 +59,9 @@ pub const Flags = struct {
         if (self.title) |t| try writer.print("  Title: {s}\n", .{t});
         if (self.description) |d| try writer.print("  Description: {s}\n", .{d});
         if (self.prefix) |p| try writer.print("  Prefix: {s}\n", .{p});
+        if (self.confirmation == true) try writer.print("  Confirmation: true\n", .{});
         if (self.code_str) |cs|
-            for (cs) |line| try writer.print("  Code String: {s}\n", .{line});
+            for (cs) |line| try writer.print("  Code String: {c}\n", .{line});
     }
 
     pub fn printHelp(self: Flags) void {
@@ -79,14 +81,14 @@ pub const Flags = struct {
             \\
             \\| Pass Code Directly through your Shell and get the fragment
             \\
-            \\./vsfragment -c "import csv
+            \\./vsfragment -c 'import csv
             \\input_file_path = "input.txt"  # Replace with your input file path
             \\output_file_path = "output.csv"  # Replace with your desired output CSV file path
             \\with open(input_file_path, "r") as infile, open(output_file_path, "w", newline="") as outfile:
             \\    reader = csv.reader(infile, delimiter="|")
             \\    writer = csv.writer(outfile)
             \\    for row in reader:
-            \\        writer.writerow(row)" 
+            \\        writer.writerow(row)' 
             \\
             \\===========================================================
             \\Flags:

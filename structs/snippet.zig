@@ -6,6 +6,7 @@ pub const Snippet = struct {
     prefix: []const u8,
     body: [][]const u8,
     description: []const u8,
+    create_flag: bool,
 
     pub fn format(
         snippet: Snippet,
@@ -13,14 +14,20 @@ pub const Snippet = struct {
         _: std.fmt.FormatOptions,
         writer: anytype,
     ) !void {
-        try writer.print(",\n\t{s}\n\t\t{s}\n\t\t\"body\": [\n", .{ snippet.title, snippet.prefix });
+        if (snippet.create_flag == true) {
+            try writer.print("{{\n", .{});
+        }
+        try writer.print("\t{s}\n\t\t{s}\n\t\t\"body\": [\n", .{ snippet.title, snippet.prefix });
         for (snippet.body) |parsed_line| {
             try writer.print("\t\t\t{s}\n", .{parsed_line});
         }
         try writer.print("\t\t],\n\t\t{s}\n\t}}\n", .{snippet.description});
+        if (snippet.create_flag == true) {
+            try writer.print("}}\n", .{});
+        }
     }
 
-    pub fn fromLinesAutoMemory(allocator: *const std.mem.Allocator, lines: [][]const u8) !Snippet {
+    pub fn fromLinesAutoMemory(allocator: std.mem.Allocator, lines: [][]const u8) !Snippet {
         var parsedLines = std.ArrayList([]const u8).init(allocator.*);
 
         const totalLines = lines.len;
@@ -76,20 +83,21 @@ pub const Snippet = struct {
         }
 
         return Snippet{
-            .title = "\"Zig Snippet\": {",
-            .prefix = "\"prefix\": \"testparse\",",
+            .title = "\"Go HTTP Server Snippet\": {",
+            .prefix = "\"prefix\": \"gohttpserver\",",
             .body = try parsedLines.toOwnedSlice(),
-            .description = "\"description\": \"Log output to console\"",
+            .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
+            .create_flag = false,
         };
     }
 
-    pub fn fromInlineCodeBlock(allocator: *const std.mem.Allocator, lines: []const []const u8) !Snippet {
-        var parsedLines = std.ArrayList([]const u8).init(allocator.*);
+    pub fn createFromLines(allocator: std.mem.Allocator, lines: []const []const u8, write_flag: bool) !Snippet {
+        var parsedLines = std.ArrayList([]const u8).init(allocator);
 
         const totalLines = lines.len;
 
         for (lines, 0..) |line, i| {
-            var escapedLineBuilder = std.ArrayList(u8).init(allocator.*);
+            var escapedLineBuilder = std.ArrayList(u8).init(allocator);
             defer escapedLineBuilder.deinit();
 
             // Add opening quote
@@ -139,10 +147,11 @@ pub const Snippet = struct {
         }
 
         return Snippet{
-            .title = "\"Zig Snippet\": {",
-            .prefix = "\"prefix\": \"testparse\",",
+            .title = "\"Go HTTP Server Snippet\": {",
+            .prefix = "\"prefix\": \"gohttpserver\",",
             .body = try parsedLines.toOwnedSlice(),
-            .description = "\"description\": \"Log output to console\"",
+            .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
+            .create_flag = write_flag,
         };
     }
     pub fn fromLinesManualMemory(allocator: *const std.mem.Allocator, lines: [][]const u8) !Snippet {
@@ -222,10 +231,11 @@ pub const Snippet = struct {
             try parsedLines.append(parsed_line_known_size[0..j]);
         }
         return Snippet{
-            .title = "\"Zig Snippet\": {",
-            .prefix = "\"prefix\": \"testparse\",",
+            .title = "\"Go HTTP Server Snippet\": {",
+            .prefix = "\"prefix\": \"gohttpserver\",",
             .body = try parsedLines.toOwnedSlice(),
-            .description = "\"description\": \"Log output to console\"",
+            .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
+            .create_flag = false,
         };
     }
 };
