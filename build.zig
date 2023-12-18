@@ -51,15 +51,15 @@ pub fn build(b: *std.Build) !void {
         test_step.dependOn(&run_unit_tests.step);
 
         // =================== READ + PARSING TESTS ===================
-        const read_parse_tests = b.addTest(.{
-            .root_source_file = .{ .path = "tests/read_parse_test.zig" },
+        const parsing_tests = b.addTest(.{
+            .root_source_file = .{ .path = "tests/parsing_tests.zig" },
             .target = target,
         });
 
-        addCommonModules(b, read_parse_tests);
+        addCommonModules(b, parsing_tests);
 
-        const run_read_parse_tests = b.addRunArtifact(read_parse_tests);
-        test_step.dependOn(&run_read_parse_tests.step);
+        const run_parsing_tests = b.addRunArtifact(parsing_tests);
+        test_step.dependOn(&run_parsing_tests.step);
 
         // =================== CLI PARSING TESTS ===================
         const cli_parsing_tests = b.addTest(.{
@@ -68,7 +68,6 @@ pub fn build(b: *std.Build) !void {
         });
 
         addCommonModules(b, cli_parsing_tests);
-        //addZigClapFromSource(b, cli_parsing_tests);
 
         const run_cli_parsing_tests = b.addRunArtifact(cli_parsing_tests);
         test_step.dependOn(&run_cli_parsing_tests.step);
@@ -105,12 +104,18 @@ pub fn build(b: *std.Build) !void {
 // =================== MODULES ===================
 
 fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
-    const flags = b.addModule("flags", .{ .source_file = .{ .path = "structs/flags.zig" } });
     const snippet = b.addModule("snippet", .{ .source_file = .{ .path = "structs/snippet.zig" } });
     const read_lines = b.addModule("read_lines", .{ .source_file = .{ .path = "utils/read_lines.zig" } });
     const coord = b.addModule("coord", .{ .source_file = .{ .path = "structs/coord.zig" } });
     const memory_mgmt = b.addModule("memory_mgmt", .{ .source_file = .{ .path = "utils/memory_mgmt.zig" } });
     const constants = b.addModule("constants", .{ .source_file = .{ .path = "constants/cli_constants.zig" } });
+
+    const flags = b.addModule("flags", .{
+        .source_file = .{ .path = "structs/flags.zig" },
+        .dependencies = &.{
+            .{ .name = "constants", .module = constants },
+        },
+    });
 
     const write_results = b.addModule("write_results", .{
         .source_file = .{ .path = "utils/write_results.zig" },
@@ -175,6 +180,7 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
 }
 
 // $ zig build test --summary all
+// $ zig build test --summary failures
 
 // $ zig build  --summary all
 

@@ -17,28 +17,10 @@ const createSnippetsFileAndWrite = @import("create_file").createSnippetsFileAndW
 const printFragmentBuffered = @import("write_results").printFragmentBuffered;
 const printFragmentBufferedFileIO = @import("write_results").printFragmentBufferedFileIO;
 
-// cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/native && ./vsfragment_fast
-// cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/native && ./vsfragment_safe
-// ./vsfragment_fast
-
-// ./vsfragment_fast -f "testfile.txt" -o "populated.code-snippets" -c "example code" -l "go" -p --title "Go HTTP Server" --description "Creating a HTTP Server in Go" --prefix "gohttp"
-// ./vsfragment_fast -f "testfile.txt" -o "populated.code-snippets" -l "go" -p --title "Go HTTP Server" --description "Creating a HTTP Server in Go" --prefix "gohttp"
-
-// ./vsfragment_fast -c code -h -f file -o outputfile -l lang -r prefix -t title -d description -p
-// ./vsfragment_fast -c 'code memos miiii'
-
-// Flow 1. Get Input , Print
-// ./vsfragment_fast -f ../../mock/testfile.txt
-
-// Flow 2. Get Input , Write to File
-// ./vsfragment_fast -f ../../mock/testfile.txt -o ../../mock/populated.code-snippets
-
-// Flow 3. Empty File , But Exists
-// ./vsfragment_fast -f ../../mock/testfile.txt -o ../../mock/pure.code-snippets
+const constants = @import("constants");
 
 const printCLIFlags = @import("cli_parser").printCLIFlags;
 const getFragmentFlags = @import("cli_parser").getFragmentFlags;
-const stdout_init_msg = @import("constants").stdout_init_msg;
 
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -48,40 +30,60 @@ pub fn main() !void {
 
     const fragment_flags = try getFragmentFlags(allocator);
 
-    print("\n{s}", .{stdout_init_msg});
-
-    switch (fragment_flags.evaluateFlags()) {
-        0 => fragment_flags.printHelp(),
-        1 => fragment_flags.printHelp(),
+    try switch (fragment_flags.evaluateFlags()) {
+        0 => try fragment_flags.printHelp(),
+        1 => try parseFileAndPrint(allocator, fragment_flags.file_path.?),
         2 => {
-            print("\x1b[97mPassed Snippet File and Output.\x1b[0m", .{});
+            //print("\n\n\x1b[97mPassed Snippet File and Output.\x1b[0m\n\n", .{});
+            print("\n\n{s}", .{constants.stdout_passed_snippet_file_output});
             const input_file_path = fragment_flags.file_path orelse "";
             const output_file_path = fragment_flags.output_path orelse "";
             const confirmation_flag = fragment_flags.confirmation;
             try parseFromInputFileWriteOutput(allocator, input_file_path, output_file_path, confirmation_flag);
         },
         3 => {
-            print("\x1b[97mPassed Inline Snippet.\x1b[0m", .{});
+            // stdout_passed_inline_text
+            // print("\x1b[97mPassed Inline Snippet.\x1b[0m", .{});
+
+            print("\n\n{s}\n", .{constants.stdout_passed_inline_text});
+
             if (fragment_flags.code_str) |code| {
                 const split_lines = try convertInlineCodeToLines(allocator, code);
                 defer allocator.free(split_lines);
 
                 const transformed_snippet = try transformTextToFragment(allocator, split_lines);
                 _ = try printFragmentBuffered(transformed_snippet);
-                // _ = try writeResults(transformed_snippet);
             }
         },
         else => fragment_flags.printHelp(),
-    }
+    };
 
     // print("Fragment Flags: {}\n", .{fragment_flags});
+}
+
+// if only input file passed
+pub fn parseFileAndPrint(allocator: std.mem.Allocator, input_file_path: []const u8) !void {
+
+    // 1. Read File -> Write Snippet to stdout
+
+    const input_file_exists = try checkFileExists(input_file_path);
+
+    if (input_file_exists == false) return handleInputFileNotExists(input_file_path);
+
+    // 2. Print Snippet
+
+    const transformed_snippet = try transformFileToFragment(allocator, input_file_path, false);
+    _ = try printFragmentBufferedFileIO(transformed_snippet);
 }
 
 pub fn parseFromInputFileWriteOutput(allocator: std.mem.Allocator, input_file_path: []const u8, output_file_path: []const u8, confirmation_flag: bool) !void {
 
     // 1. Read File -> Return Snippet -> Set Write Flag on Fragment if passed
 
-    const transformed_snippet = try transformFileToFragment(allocator, input_file_path, confirmation_flag);
+    const input_file_exists = try checkFileExists(input_file_path);
+    if (input_file_exists == false) return handleInputFileNotExists(input_file_path);
+
+    var transformed_snippet = try transformFileToFragment(allocator, input_file_path, confirmation_flag);
 
     // 2. Print Snippet
 
@@ -89,14 +91,17 @@ pub fn parseFromInputFileWriteOutput(allocator: std.mem.Allocator, input_file_pa
 
     // 3. Decide to Create New File or Write to Existing
 
-    const file_exists = try checkFileExists(output_file_path);
+    const output_file_exists = try checkFileExists(output_file_path);
 
-    if (file_exists == false and confirmation_flag == false) { // file doesnt exist and they havent set write flag
-        print("\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n\x1b[31mOutput Path Snippets File does not exist.\x1b[0m\n", .{});
-        const msg_outputfile_missing = @import("constants").msg_outputfile_missing;
+    // Set Flag False in case -y flag was passed for existing File
+    if (output_file_exists and confirmation_flag) transformed_snippet.create_flag = false;
+
+    if (output_file_exists == false and confirmation_flag == false) { // file doesnt exist and they havent set write flag
+        print("{s}", .{constants.output_file_not_exists});
+        const msg_outputfile_missing = constants.msg_outputfile_missing;
         print("\n{s}\n", .{msg_outputfile_missing});
         return;
-    } else if (confirmation_flag == true) { // file doesnt exist but they want to write file
+    } else if (output_file_exists == false and confirmation_flag == true) { // file doesnt exist but they want to write file
         print("\nCreating Snippets File {s} and adding Fragment.\n", .{output_file_path});
 
         try createSnippetsFileAndWrite(transformed_snippet, output_file_path);
@@ -105,9 +110,18 @@ pub fn parseFromInputFileWriteOutput(allocator: std.mem.Allocator, input_file_pa
         return;
     }
 
+    // if file exists and they pass the -y flag we just insert into it by continuing below flow
+
     const position = try findPositionToInsert(allocator, output_file_path);
 
     try writeSnippetToFileAtByteOffset(allocator, transformed_snippet, output_file_path, position);
 
-    print("\x1b[92mSuccessfully Updated Snippets File \x1b[0m\x1b[97m{s}\x1b[0m\n", .{output_file_path});
+    print("\nSuccessfully Updated Snippets File \x1b[92m{s}\x1b[0m\n", .{output_file_path});
+}
+
+pub fn handleInputFileNotExists(path: []const u8) void {
+    print("\n\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n\x1b[31mInput File {s} does not exist at path.\x1b[0m\n", .{path});
+    const INPUT_FILE_NOT_FOUND_MSG = constants.INPUT_FILE_NOT_FOUND_MSG;
+    print("\n{s}\n", .{INPUT_FILE_NOT_FOUND_MSG});
+    return;
 }

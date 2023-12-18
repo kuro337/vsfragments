@@ -1,6 +1,10 @@
 const std = @import("std");
 const print = std.debug.print;
 
+const constants = @import("constants");
+
+// use .? to coeerce type to remove Optional
+
 pub const Flags = struct {
     file_path: ?[]const u8 = null, // Optional file path for input
     output_path: ?[]const u8 = null, // Optional file path for output
@@ -64,46 +68,16 @@ pub const Flags = struct {
             for (cs) |line| try writer.print("  Code String: {c}\n", .{line});
     }
 
-    pub fn printHelp(self: Flags) void {
+    pub fn printHelp(self: Flags) !void {
         _ = self;
 
-        const help_str =
-            \\
-            \\vsfragment - Convert a VSCode Snippet File to a Fragment
-            \\
-            \\Usage: vsfragment [flags]
-            \\
-            \\| Create vsfragment
-            \\./vsfragment -f anyfile.md
-            \\
-            \\| Create vsfragment & Update Snippets File (recommended usage paste text into a file and use -f flag)
-            \\./vsfragment -f httpserver.go -o /users/snippets/go.code-snippets
-            \\
-            \\| Pass Code Directly through your Shell and get the fragment
-            \\
-            \\./vsfragment -c 'import csv
-            \\input_file_path = "input.txt"  # Replace with your input file path
-            \\output_file_path = "output.csv"  # Replace with your desired output CSV file path
-            \\with open(input_file_path, "r") as infile, open(output_file_path, "w", newline="") as outfile:
-            \\    reader = csv.reader(infile, delimiter="|")
-            \\    writer = csv.writer(outfile)
-            \\    for row in reader:
-            \\        writer.writerow(row)' 
-            \\
-            \\===========================================================
-            \\Flags:
-            \\  -f, --file    <file path>     Path to a VSCode Snippet File
-            \\  -o, --output <file_path>     Path to an Existing VSCode Snippets File or Empty File
-            \\  -c, --code   <string...>    Code String to convert. Supports Multiline.
-            \\  -l, --lang   <language>     Language of the Code String
-            \\  -p, --print                 Print the Fragment to stdout
-            \\  -h, --help                  Print this help message
-            \\  --prefix      <prefix>        Prefix for the Fragment
-            \\  --title      <title>        Title for the Fragment
-            \\  --desc       <description>  Description for the Fragment
-            \\===========================================================
-        ;
-        print("{s}\n", .{help_str});
+        const out = std.io.getStdOut();
+        var buf = std.io.bufferedWriter(out.writer());
+        const w = buf.writer();
+
+        try w.print("{s}", .{constants.HELP_MSG});
+
+        try buf.flush();
     }
 };
 

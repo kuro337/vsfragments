@@ -165,16 +165,20 @@ Resulting Snippet that VSCode uses as a Zig Code Fragment
 Latest Test Run
 
 ```bash
-Build Summary: 9/9 steps succeeded; 24/24 tests passed
+Build Summary: 13/13 steps succeeded; 18/18 tests passed
 test success
-├─ run test 7 passed 158ms MaxRSS:4M
-│  └─ zig test Debug native success 1s MaxRSS:237M
-├─ run test 9 passed 116ms MaxRSS:4M
+├─ run test 5 passed 194ms MaxRSS:4M
+│  └─ zig test Debug native success 1s MaxRSS:235M
+├─ run test 2 passed 61ms MaxRSS:4M
 │  └─ zig test Debug native success 1s MaxRSS:199M
-├─ run test 7 passed 118ms MaxRSS:4M
-│  └─ zig test Debug aarch64-macos success 1s MaxRSS:239M
-└─ run test 1 passed 84ms MaxRSS:4M
-   └─ zig test Debug aarch64-macos success 1s MaxRSS:197M
+├─ run test 2 passed 128ms MaxRSS:1M
+│  └─ zig test Debug native success 1s MaxRSS:187M
+├─ run test 5 passed 111ms MaxRSS:4M
+│  └─ zig test Debug aarch64-macos success 1s MaxRSS:242M
+├─ run test 2 passed 162ms MaxRSS:4M
+│  └─ zig test Debug aarch64-macos success 1s MaxRSS:197M
+└─ run test 2 passed 72ms MaxRSS:1M
+   └─ zig test Debug aarch64-macos success 1s MaxRSS:190M
 ```
 
 <hr/>

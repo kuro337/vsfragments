@@ -11,9 +11,8 @@ const Snippet = @import("snippet").Snippet;
 const Coord = @import("coord").Coord;
 
 test "Read File and Create Snippet" {
-    const lines = try readLinesFromFile(&std.testing.allocator, "tests/testfile.txt");
-    //defer lines.deinit();
-    defer clearSliceMatrixMemory(lines, &std.testing.allocator);
+    const lines = try readLinesFromFile(std.testing.allocator, "tests/testfile.txt");
+    defer clearSliceMatrixMemory(lines, std.testing.allocator);
 
     for (lines) |line| {
         print("Line: {s}\n", .{line});
@@ -94,42 +93,6 @@ test "Read Line by Line" {
     try expect(num_lines > 0);
 }
 
-test "Parse JSON" {}
-
-test "Shared Threading Mutex" {
-    var shared_list = ArrayList(isize).init(std.testing.allocator);
-    defer shared_list.deinit();
-
-    // Pre-allocate space to avoid reallocation in threads
-    try shared_list.ensureTotalCapacity(5);
-
-    var threads: [5]std.Thread = undefined;
-
-    // Spawn threads
-    var i: usize = 0;
-    while (i < threads.len) {
-        threads[i] = try Thread.spawn(.{}, appendToList, .{ &shared_list, @as(isize, @intCast(i + 2)) });
-        i += 1;
-    }
-
-    // Join threads
-    for (0..i) |j| {
-        _ = threads[j].join();
-    }
-
-    // Verify and print list elements
-    for (shared_list.items, 0..) |item, index| {
-        std.debug.print("  [{}] {}\n", .{ index, item });
-    }
-}
-
-fn appendToList(list: *ArrayList(isize), value: isize) void {
-    mutex.lock();
-    defer mutex.unlock();
-    // Critical section
-    _ = list.appendAssumeCapacity(value);
-}
-var mutex = std.Thread.Mutex{};
 // "Test Parser": {
 //   "prefix": "testparse",
 //   "body": [

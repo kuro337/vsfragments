@@ -12,9 +12,9 @@ pub fn checkMemoryLeaks(gpa: *std.heap.GeneralPurposeAllocator(.{})) void {
 }
 
 // Pass a slice of slices to free each line
-pub fn clearSliceMatrixMemory(slice: [][]const u8, allocator: *const std.mem.Allocator) void {
+pub fn clearSliceMatrixMemory(slice: [][]const u8, allocator: std.mem.Allocator) void {
     for (slice) |line| {
-        allocator.*.free(line);
+        allocator.free(line);
     }
-    allocator.*.free(slice);
+    allocator.free(slice);
 }

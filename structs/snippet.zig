@@ -27,13 +27,62 @@ pub const Snippet = struct {
         }
     }
 
-    pub fn fromLinesAutoMemory(allocator: std.mem.Allocator, lines: [][]const u8) !Snippet {
-        var parsedLines = std.ArrayList([]const u8).init(allocator.*);
+    pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) ![]const u8 {
+        var escapedLineBuilder = std.ArrayList(u8).init(allocator);
+        defer escapedLineBuilder.deinit();
+
+        // Add opening quote
+        try escapedLineBuilder.append('\"');
+
+        var spaceCount: usize = 0;
+        for (line) |char| {
+            switch (char) {
+                ' ' => {
+                    spaceCount += 1;
+                    if (spaceCount == 4) {
+                        // Handle tab logic
+                        try escapedLineBuilder.append('\\');
+                        try escapedLineBuilder.append('t');
+                        spaceCount = 0;
+                    } else {
+                        // Append a single space
+                        try escapedLineBuilder.append(' ');
+                    }
+                },
+                '\\' => {
+                    // Append a backslash to escape it, without adding any spaces
+                    try escapedLineBuilder.append('\\');
+                    try escapedLineBuilder.append('\\');
+                },
+                '$', '"' => {
+                    // Escape special characters
+                    try escapedLineBuilder.append('\\');
+                    try escapedLineBuilder.append(char);
+                },
+                else => {
+                    // Reset space counter and append other characters directly
+                    spaceCount = 0;
+                    try escapedLineBuilder.append(char);
+                },
+            }
+        }
+
+        // Add closing quote
+        try escapedLineBuilder.append('\"');
+
+        // Add comma except for the last line
+        try escapedLineBuilder.append(',');
+
+        return escapedLineBuilder.toOwnedSlice();
+    }
+
+    pub fn createFromLines(allocator: std.mem.Allocator, lines: []const []const u8, write_flag: bool) !Snippet {
+        var parsedLines = std.ArrayList([]const u8).init(allocator);
 
         const totalLines = lines.len;
 
         for (lines, 0..) |line, i| {
-            var escapedLineBuilder = std.ArrayList(u8).init(allocator.*);
+            var escapedLineBuilder = std.ArrayList(u8).init(allocator);
             defer escapedLineBuilder.deinit();
 
             // Add opening quote
@@ -45,26 +94,28 @@ pub const Snippet = struct {
                     ' ' => {
                         spaceCount += 1;
                         if (spaceCount == 4) {
+                            // Handle tab logic
                             try escapedLineBuilder.append('\\');
                             try escapedLineBuilder.append('t');
                             spaceCount = 0;
+                        } else {
+                            // Append a single space
+                            try escapedLineBuilder.append(' ');
                         }
                     },
                     '\\' => {
+                        // Append a backslash to escape it, without adding any spaces
                         try escapedLineBuilder.append('\\');
                         try escapedLineBuilder.append('\\');
                     },
                     '$', '"' => {
+                        // Escape special characters
                         try escapedLineBuilder.append('\\');
                         try escapedLineBuilder.append(char);
                     },
                     else => {
-                        if (spaceCount > 0 and spaceCount < 4) {
-                            while (spaceCount > 0) {
-                                try escapedLineBuilder.append(' ');
-                                spaceCount -= 1;
-                            }
-                        }
+                        // Reset space counter and append other characters directly
+                        spaceCount = 0;
                         try escapedLineBuilder.append(char);
                     },
                 }
@@ -87,11 +138,11 @@ pub const Snippet = struct {
             .prefix = "\"prefix\": \"gohttpserver\",",
             .body = try parsedLines.toOwnedSlice(),
             .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
-            .create_flag = false,
+            .create_flag = write_flag,
         };
     }
 
-    pub fn createFromLines(allocator: std.mem.Allocator, lines: []const []const u8, write_flag: bool) !Snippet {
+    pub fn createFromLinesNonANSI(allocator: std.mem.Allocator, lines: []const []const u8, write_flag: bool) !Snippet {
         var parsedLines = std.ArrayList([]const u8).init(allocator);
 
         const totalLines = lines.len;
@@ -152,90 +203,6 @@ pub const Snippet = struct {
             .body = try parsedLines.toOwnedSlice(),
             .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
             .create_flag = write_flag,
-        };
-    }
-    pub fn fromLinesManualMemory(allocator: *const std.mem.Allocator, lines: [][]const u8) !Snippet {
-        var parsedLines = std.ArrayList([]const u8).init(allocator.*);
-
-        for (lines) |line| {
-
-            // Instead ArrayList Manages Memory Automatically
-            //var escaped_line = std.ArrayList([]const u8).init(allocator.*);
-
-            // Allocate more space for the added characters and escaped characters
-            var escaped_line = try allocator.alloc(u8, line.len * 2 + 3); // Extra space for quotes and comma
-            defer allocator.free(escaped_line);
-
-            var j: usize = 0;
-
-            // Add opening quote
-            escaped_line[j] = '\"';
-            j += 1;
-
-            var space_count: usize = 0;
-            for (line) |char| {
-                switch (char) {
-                    ' ' => {
-                        space_count += 1;
-                        if (space_count == 4) {
-                            escaped_line[j] = '\\';
-                            j += 1;
-                            escaped_line[j] = 't';
-                            j += 1;
-                            space_count = 0;
-                        }
-                    },
-                    '\\' => {
-                        escaped_line[j] = '\\';
-                        j += 1;
-                        escaped_line[j] = '\\';
-                        j += 1;
-                    },
-                    '$', '"' => {
-                        escaped_line[j] = '\\';
-                        j += 1;
-                        escaped_line[j] = char;
-                        j += 1;
-                    },
-                    else => {
-                        if (space_count > 0 and space_count < 4) {
-                            while (space_count > 0) {
-                                escaped_line[j] = ' ';
-                                j += 1;
-                                space_count -= 1;
-                            }
-                        }
-                        escaped_line[j] = char;
-                        j += 1;
-                    },
-                }
-            }
-            // Handle remaining spaces
-            while (space_count > 0) {
-                escaped_line[j] = ' ';
-                j += 1;
-                space_count -= 1;
-            }
-
-            // Add closing quote and comma
-            escaped_line[j] = '\"';
-            j += 1;
-            escaped_line[j] = ',';
-            j += 1;
-
-            print("Escaped Line: {s}\n", .{escaped_line[0..j]});
-
-            const parsed_line_known_size = try allocator.alloc(u8, j);
-            std.mem.copy(u8, parsed_line_known_size, escaped_line[0..j]);
-
-            try parsedLines.append(parsed_line_known_size[0..j]);
-        }
-        return Snippet{
-            .title = "\"Go HTTP Server Snippet\": {",
-            .prefix = "\"prefix\": \"gohttpserver\",",
-            .body = try parsedLines.toOwnedSlice(),
-            .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
-            .create_flag = false,
         };
     }
 };
