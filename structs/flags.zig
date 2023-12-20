@@ -3,20 +3,51 @@ const print = std.debug.print;
 
 const constants = @import("constants");
 
+pub const FlagEval = enum(u8) {
+    invalid,
+    file,
+    file_out,
+    inline_code,
+};
+
 // use .? to coeerce type to remove Optional
 
 pub const Flags = struct {
-    file_path: ?[]const u8 = null, // Optional file path for input
-    output_path: ?[]const u8 = null, // Optional file path for output
-    //code_str: ?[]const []const u8 = null, // Optional code string for direct input
-    code_str: ?[]const u8 = null, // Optional code string for direct input
-    lang: ?[]const u8 = null, // Optional language specification
-    help: bool = false, // Flag for printing output
-    print: bool = false, // Flag for printing output
-    title: ?[]const u8 = null, // Optional title for snippet
-    description: ?[]const u8 = null, // Optional description for snippet
-    prefix: ?[]const u8 = null, // Optional prefix for snippet
-    confirmation: bool = false, // Internal Flag to Detect if Inline Code Passed
+    file_path: ?[]const u8 = null,
+    output_path: ?[]const u8 = null,
+    code_str: ?[]const u8 = null,
+    lang: ?[]const u8 = null,
+    help: bool = false,
+    print: bool = false,
+    title: ?[]const u8 = null,
+    description: ?[]const u8 = null,
+    prefix: ?[]const u8 = null,
+    confirmation: bool = false,
+
+    pub fn evalCmds(self: Flags) FlagEval {
+
+        // passed no file or direct code
+        if (self.file_path == null and self.code_str == null) {
+            return FlagEval.invalid;
+        }
+
+        // passed file but no output
+        if (self.file_path != null and self.output_path == null) {
+            return FlagEval.file;
+        }
+
+        // passed file and output path
+        if (self.file_path != null and self.output_path != null) {
+            return FlagEval.file_out;
+        }
+
+        // passed Code Directly
+        if (self.code_str != null) {
+            return FlagEval.inline_code;
+        }
+
+        return FlagEval.invalid;
+    }
 
     pub fn evaluateFlags(self: Flags) u8 {
 
@@ -42,6 +73,7 @@ pub const Flags = struct {
 
         return 0;
     }
+
     pub fn checkFileFlags(self: Flags) void {
         if (self.file_path == null) {
             print("Use -f to point to a File to convert to a Fragment.\n", .{});
@@ -80,42 +112,3 @@ pub const Flags = struct {
         try buf.flush();
     }
 };
-
-// Flow 1. Pass Input File and Output File [ -f , -o ]  [ --file , -output ]
-
-// ./vsfragment -f testfile.txt -o populated.code-snippets
-
-// Flow 2. Pass Code Directly and Pretty Print it       [ -c ]  [ --code ]
-
-// ./vsfragment -c <multilinepossiblestring>
-
-// Flow 3. Convert file, Update Output & Print          [ -f , -o , -p ]  [ --file , -output , --print ]
-
-// ./vsfragment -f testfile.txt -o go.code-snippets -p
-
-// Flow 4. Pass Input File Only                        [ -f ]  [ --file ]
-//(Print it if only input file is passed)
-
-// ./vsfragment -f testfile.txt
-
-// Flow 5. Pass Input File and Specify Lang Only       [ -f , -l ]  [ --file , -lang ]
-// (AutoDetect Snippets File and Update)
-
-// ./vsfragment -f testfile.txt -l go
-
-// Flow 6. Input,Output, and Fragment Metadata [ -f , -o ]  [ --file , -output , --prefix , --title , --description ]
-// ./vsfragment -f testfile.txt -l go -o output.txt --prefix gohttp --title 'Go Web Server' --description 'Creating a HTTP Server in Go'
-
-// Flags {
-//     file_path: "testfile.txt",
-//     vs_snippets_path: "vsfragments/mock/populated.code-snippets"
-//     code_str: null,   'multilinepossiblestring'
-//     lang: null,        go 'go' "go"
-//     print: null,       -p --print
-//     help: null,        -h --help
-//     format:null,       -fmt --format
-//     prefix: null,       gohttp
-//     title: null,       "Go HTTP Server"
-//     description: null, "Creating a HTTP Server in Go"
-// };
-// }

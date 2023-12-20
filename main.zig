@@ -22,6 +22,8 @@ const constants = @import("constants");
 const printCLIFlags = @import("cli_parser").printCLIFlags;
 const getFragmentFlags = @import("cli_parser").getFragmentFlags;
 
+const FlagEval = @import("flags").FlagEval;
+
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
@@ -30,18 +32,18 @@ pub fn main() !void {
 
     const fragment_flags = try getFragmentFlags(allocator);
 
-    try switch (fragment_flags.evaluateFlags()) {
-        0 => try fragment_flags.printHelp(),
-        1 => try parseFileAndPrint(allocator, fragment_flags.file_path.?),
-        2 => {
-            //print("\n\n\x1b[97mPassed Snippet File and Output.\x1b[0m\n\n", .{});
+    switch (fragment_flags.evalCmds()) {
+        FlagEval.invalid => try fragment_flags.printHelp(),
+        FlagEval.file => try parseFileAndPrint(allocator, fragment_flags.file_path.?),
+        FlagEval.file_out => {
+            //print("\n\n\x1b\n[97mPassed Snippet File and Output.\x1b[0m\n\n", .{});
             print("\n\n{s}", .{constants.stdout_passed_snippet_file_output});
             const input_file_path = fragment_flags.file_path orelse "";
             const output_file_path = fragment_flags.output_path orelse "";
             const confirmation_flag = fragment_flags.confirmation;
             try parseFromInputFileWriteOutput(allocator, input_file_path, output_file_path, confirmation_flag);
         },
-        3 => {
+        FlagEval.inline_code => {
             // stdout_passed_inline_text
             // print("\x1b[97mPassed Inline Snippet.\x1b[0m", .{});
 
@@ -55,8 +57,7 @@ pub fn main() !void {
                 _ = try printFragmentBuffered(transformed_snippet);
             }
         },
-        else => fragment_flags.printHelp(),
-    };
+    }
 
     // print("Fragment Flags: {}\n", .{fragment_flags});
 }
