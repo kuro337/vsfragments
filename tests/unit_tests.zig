@@ -72,6 +72,24 @@ test "JSON Parse - String, Array, Map -> Requires Allocator" {
     try expect(user.age == 25);
 }
 
+test "JSON Parse - Snippet, String, Array, Map -> Requires Allocator" {
+    const User = struct { name: []u8, age: u16, body: [][]u8 };
+
+    const parsed = try std.json.parseFromSlice(
+        User,
+        test_allocator,
+        \\{ "name": "Joe", "age": 25, "body": ["A","B","C"]}
+    ,
+        .{},
+    );
+    defer parsed.deinit();
+
+    const user = parsed.value;
+
+    try expect(eql(u8, user.name, "Joe"));
+    try expect(user.age == 25);
+}
+
 test "Read Line by Line" {
     // Open the file
     //const file = try std.fs.cwd().openFile("/Users/kuro/Library/Application Support/Code/User/snippets/zig.code-snippets", .{});

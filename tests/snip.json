@@ -1,0 +1,7 @@
+{
+  "vssnippet": {
+    "prefix": "gohttpserver",
+    "body": ["hello"],
+    "description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."
+  }
+}

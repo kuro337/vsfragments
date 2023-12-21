@@ -205,4 +205,111 @@ pub const Snippet = struct {
             .create_flag = write_flag,
         };
     }
+
+    pub fn toString(snippet: Snippet, allocator: std.mem.Allocator) ![]u8 {
+        var builder = std.ArrayList(u8).init(allocator);
+        defer builder.deinit();
+
+        try builder.appendSlice("{\n");
+
+        try builder.appendSlice("\t");
+        try builder.appendSlice(snippet.title);
+        try builder.appendSlice("\n\t\t");
+        try builder.appendSlice(snippet.prefix);
+        try builder.appendSlice("\n\t\t\"body\": [\n");
+
+        for (snippet.body) |line| {
+            try builder.appendSlice("\t\t\t");
+            try builder.appendSlice(line);
+            try builder.appendSlice("\n");
+        }
+
+        try builder.appendSlice("\t\t],\n\t\t");
+        try builder.appendSlice(snippet.description);
+        try builder.appendSlice("\n\t}\n}\n");
+
+        return builder.toOwnedSlice();
+    }
 };
+
+pub fn testSnippetToString(allocator: std.mem.Allocator, snippet: Snippet) !void {
+    const to_string = try snippet.toString(allocator);
+
+    print("toString() Snippet \n\n{s}\n", .{to_string});
+
+    const SnippetContent = struct {
+        prefix: []u8,
+        body: [][]u8,
+        description: []u8,
+    };
+
+    // DEFINE JSON STRING , PARSE INTO JSON VALUE (noprint) - THEN STRINGIFY JSON VALUE
+    const json =
+        \\{"prefix": "gohttpserver","body": ["hello"],"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."}
+    ;
+
+    const parsed = std.json.parseFromSlice(
+        SnippetContent,
+        allocator,
+        json,
+        .{},
+    ) catch |err| {
+        std.debug.print("Error for Parse: {}\n", .{err});
+        return;
+    };
+
+    defer parsed.deinit();
+
+    var buf: [4096]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buf);
+    var string = std.ArrayList(u8).init(fba.allocator());
+
+    try std.json.stringify(parsed.value, .{}, string.writer());
+
+    print("Stringified {s}\n", .{string.items});
+
+    //const parsed_snip = parsed.value;
+
+    //print("Parsed Struct {}\n", .{parsed_snip});
+    print("Parsed No Err\n", .{});
+
+    // ===================================================
+    // ===================================================
+
+    const ParseObject = struct {
+        thisisunknown: SnippetContent,
+    };
+
+    const json_nested =
+        \\{
+        \\"thisisunknown": 
+        \\  {
+        \\      "prefix": "anystring",
+        \\      "body": ["array","values"],
+        \\      "description": "any string here"
+        \\  }
+        \\}
+    ;
+
+    const nested_parse = std.json.parseFromSlice(
+        ParseObject,
+        allocator,
+        json_nested,
+        .{},
+    ) catch |err| {
+        std.debug.print("Error for Nested Parse: {}\n", .{err});
+        return;
+    };
+
+    defer nested_parse.deinit();
+
+    var n_buf: [4096]u8 = undefined;
+    var fba_n = std.heap.FixedBufferAllocator.init(&n_buf);
+    var string_n = std.ArrayList(u8).init(fba_n.allocator());
+
+    try std.json.stringify(nested_parse.value, .{}, string_n.writer());
+
+    print("Stringified {s}\n", .{string_n.items});
+
+    print("Parsed nested No Err\n", .{});
+}
