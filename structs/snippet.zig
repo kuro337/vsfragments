@@ -78,6 +78,7 @@ pub const Snippet = struct {
 
     pub fn createFromLines(allocator: std.mem.Allocator, lines: []const []const u8, write_flag: bool) !Snippet {
         var parsedLines = std.ArrayList([]const u8).init(allocator);
+        defer parsedLines.deinit();
 
         const totalLines = lines.len;
 
@@ -140,6 +141,27 @@ pub const Snippet = struct {
             .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
             .create_flag = write_flag,
         };
+    }
+
+    pub fn createFromSingleString(allocator: std.mem.Allocator, input: [*c]const u8, write_flag: bool) !Snippet {
+
+        // Convert Input to a Zig String
+        const cStringSlice: []const u8 = std.mem.span(input);
+
+        const split_lines = try convertStringToStringSlice(allocator, cStringSlice);
+        defer allocator.free(split_lines);
+
+        if (write_flag == true) {
+            const out = std.io.getStdOut();
+            var buf = std.io.bufferedWriter(out.writer());
+            //var w = buf.writer();
+            try buf.writer().print("Direct String Received in Snippet from JS-C: \n{s}\n", .{cStringSlice});
+            try buf.flush();
+        }
+
+        const snippet = try Snippet.createFromLines(allocator, split_lines, write_flag);
+
+        return snippet;
     }
 
     pub fn createFromLinesNonANSI(allocator: std.mem.Allocator, lines: []const []const u8, write_flag: bool) !Snippet {
@@ -230,7 +252,113 @@ pub const Snippet = struct {
 
         return builder.toOwnedSlice();
     }
+
+    pub fn toCStr(snippet: Snippet, allocator: std.mem.Allocator) [*:0]const u8 {
+        var out = std.ArrayList(u8).initCapacity(allocator, 4096) catch unreachable;
+        defer out.deinit();
+
+        snippet.toWriter(out.writer()) catch unreachable;
+        out.append(0) catch unreachable; // c-str sentinel terminater 0
+
+        const final_buf = out.toOwnedSlice() catch unreachable;
+
+        //return final_buf.ptr doesnt work because we need to coerce the type to be 0 sentinel terminated
+
+        const cstr = final_buf[0 .. final_buf.len - 1 :0]; // validate sentinel termination
+
+        return cstr.ptr;
+    }
+
+    pub fn toStr(snippet: Snippet, allocator: std.mem.Allocator) []const u8 {
+        var out = std.ArrayList(u8).initCapacity(allocator, 4096) catch unreachable;
+        defer out.deinit();
+
+        snippet.toWriter(out.writer()) catch unreachable;
+        out.append(0) catch unreachable;
+
+        const final_buf = out.toOwnedSlice() catch unreachable;
+
+        return final_buf;
+
+        // @Usage
+
+        //  const s_str = snippet.toStr(allocator);
+        //  std.debug.print("normal str:\n{s}\n", .{s_str});
+    }
+
+    pub fn toWriter(snippet: Snippet, writer: anytype) @TypeOf(writer).Error!void {
+        try writer.writeAll("{\n");
+
+        try writer.writeAll("\t");
+        try writer.writeAll(snippet.title);
+        try writer.writeAll("\n\t\t");
+        try writer.writeAll(snippet.prefix);
+        try writer.writeAll("\n\t\t\"body\": [\n");
+
+        for (snippet.body) |line| {
+            try writer.writeAll("\t\t\t");
+            try writer.writeAll(line);
+            try writer.writeAll("\n");
+        }
+
+        try writer.writeAll("\t\t],\n\t\t");
+        try writer.writeAll(snippet.description);
+        try writer.writeAll("\n\t}\n}\n");
+    }
 };
+
+test "Test Snippet Parse From Direct C String" {
+    const mock_selection =
+        \\hello
+        \\world
+        \\\\\\\\
+        \\\n\n\n\n\n
+        \\nextline nextline 
+        \\oneline \n\n    aaaa\\\\ \ttttt XXXX
+        \\oneline \n\n    aaaa\\\\ \ttttt XXXX
+        \\          \!!!!!,,,,,
+        \\
+        \\
+    ;
+
+    const allocator = std.testing.allocator;
+
+    const cString: [*c]const u8 = "Your test string here";
+    const cStringSlice: []const u8 = std.mem.span(cString);
+
+    const split_s = try convertStringToStringSlice(allocator, cStringSlice);
+    defer allocator.free(split_s);
+
+    acceptStringSlicesConst(split_s);
+
+    try Snippet.createFromSingleString(allocator, mock_selection, true);
+    try Snippet.createFromSingleString(allocator, cString, true);
+}
+
+// ============== STRING CONVERSION UTILS ==============
+
+pub fn convertStringToStringSlice(allocator: std.mem.Allocator, code_str: []const u8) ![][]const u8 {
+    var splitLines = std.ArrayList([]const u8).init(allocator);
+    defer splitLines.deinit();
+
+    var split = std.mem.splitScalar(u8, code_str, '\n');
+
+    while (split.next()) |line| {
+        try splitLines.append(line);
+    }
+
+    return splitLines.toOwnedSlice();
+}
+
+pub fn acceptStringSlicesConst(str_slices: []const []const u8) void {
+    const len = str_slices.len;
+    std.debug.print("Length of Passed String Slices {d}\n", .{len});
+
+    for (str_slices) |st| {
+        std.debug.print("{s}\n", .{st});
+    }
+}
+// ============================================
 
 pub fn testSnippetToString(allocator: std.mem.Allocator, snippet: Snippet) !void {
     const to_string = try snippet.toString(allocator);

@@ -101,6 +101,8 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
     const memory_mgmt = b.addModule("memory_mgmt", .{ .source_file = .{ .path = "../utils/memory_mgmt.zig" } });
     const constants = b.addModule("constants", .{ .source_file = .{ .path = "../constants/cli_constants.zig" } });
 
+    const ffi_ally = b.addModule("ffi_ally", .{ .source_file = .{ .path = "../structs/ffi_ally.zig" } });
+
     const modify_snippet = b.addModule("modify_snippet", .{
         .source_file = .{ .path = "../core/modify_snippet.zig" },
         .dependencies = &.{
@@ -136,27 +138,7 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
         },
     });
 
-    //     modify_snippet
-    //     create_file
-    //     json_parser
-    //     write_results
-
-    // const parse_file_c = b.addModule("parse_file_c", .{
-    //     .source_file = .{ .path = "parse_file_c.zig" },
-    //     .dependencies = &.{
-    //         .{ .name = "constants", .module = constants },
-    //         .{ .name = "modify_snippet", .module = modify_snippet },
-    //         .{ .name = "create_file", .module = create_file },
-    //         .{ .name = "json_parser", .module = json_parser },
-    //         .{ .name = "write_results", .module = write_results },
-    //         .{ .name = "snippet", .module = snippet },
-    //         .{ .name = "read_lines", .module = read_lines },
-    //         .{ .name = "memory_mgmt", .module = memory_mgmt },
-    //     },
-    // });
-
-    //    exe.addModule("parse_file_c", parse_file_c);
-
+    exe.addModule("ffi_ally", ffi_ally);
     exe.addModule("modify_snippet", modify_snippet);
     exe.addModule("create_file", create_file);
     exe.addModule("json_parser", json_parser);

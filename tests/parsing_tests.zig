@@ -106,6 +106,8 @@ test "Parse ANSI Coded Characters" {
     _ = arr;
 
     for (og_parser.items) |p| {
-        std.debug.print("{s}\n", .{p}); // converted lines shud be equal to above lines
+        _ = p; // autofix
+
+        // std.debug.print("{s}\n", .{p}); // converted lines shud be equal to above lines
     }
 }

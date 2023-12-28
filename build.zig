@@ -196,3 +196,8 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
 
 // Print File Architecture ARM or x86_64
 // file filename
+
+// $ zig2 build test --summary all
+// $ zig2 build test --summary failures
+
+// $ zig2 build  --summary all

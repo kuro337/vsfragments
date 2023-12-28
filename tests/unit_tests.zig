@@ -15,7 +15,9 @@ test "Read File and Create Snippet" {
     defer clearSliceMatrixMemory(lines, std.testing.allocator);
 
     for (lines) |line| {
-        print("Line: {s}\n", .{line});
+        _ = line; // autofix
+
+        //print("Line: {s}\n", .{line});
     }
 }
 

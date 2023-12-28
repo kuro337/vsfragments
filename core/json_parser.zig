@@ -37,8 +37,10 @@ pub fn transformTextToFragment(allocator: std.mem.Allocator, code_str: []const [
 }
 
 // testing type change of  linesArrayList
+
 pub fn transformFileToFragment(allocator: std.mem.Allocator, file_path: []const u8, create: bool) !Snippet {
     const linesArrayList = try readLinesFromFile(allocator, file_path);
+    defer allocator.free(linesArrayList);
 
     const snippet = try Snippet.createFromLines(allocator, linesArrayList, create);
 

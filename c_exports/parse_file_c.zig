@@ -2,45 +2,18 @@ const std = @import("std");
 const print = std.debug.print;
 
 const Snippet = @import("snippet").Snippet;
+const Ally = @import("ffi_ally").Ally;
 
 const checkFileExists = @import("modify_snippet").checkFileExists;
 const handleInputFileNotExists = @import("create_file").handleInputFileNotExists;
 const transformFileToFragment = @import("json_parser").transformFileToFragment;
 const printFragmentBufferedFileIO = @import("write_results").printFragmentBufferedFileIO;
 
-// ========== Free Memory Utility
+// ====================== CORE_NAPI_EXPORTS ======================
 
-export fn freeMemory(ptr: [*c]u8) void {
-    _ = ptr;
-
-    // Code to free the memory allocated by allocator.dupeZ
-}
-
-// Export this Function - it should accept a C string and return the Snippet String
-
-// export fn returnsCstr(path: [*c]const u8) [*c]const u8 {
-
-//      const allocator =  std.heap.ArenaAllocator...
-
-//      // defer arena.deinit(); uncommenting causes segfault from FFI call
-
-//      const s : []u8 = doSomethingGetString(allocator)
-//      convert_s_to_c_str using allocator.dupeZ
-//
-//      return c_str.ptr // FFI consumes string - but then memory for string is still active
-// }
-
-export fn parseFileGetSnippet(file_path: [*c]const u8, print_out: bool) [*c]const u8 {
+export fn parseFileGetSnippet(file_path: [*c]const u8, print_out: bool) [*:0]const u8 {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    // Uncommenting this frees the memory and causes a segfault during JS
-    // defer arena.deinit();
-
-    // When the library is loaded :
-    // the binary is loaded to the Memory Space of the Node Program
-
-    // we provide a way in C to free this memory - by either :
-    // 1. Having a Global Allocator not tied to function calls
-    // 2. Providing a Free function that uses the C Allocator to the NAPI calls
+    defer arena.deinit();
 
     const allocator = arena.allocator();
 
@@ -50,16 +23,24 @@ export fn parseFileGetSnippet(file_path: [*c]const u8, print_out: bool) [*c]cons
         std.debug.panic("Failed to Parse Text from File {s}\nErr:{}", .{ zig_file_path, err });
     };
 
-    const to_string = snippet.toString(allocator) catch |err| {
-        std.debug.panic("Failed to Convert to String for File {s}\nErr:{}", .{ zig_file_path, err });
+    return snippet.toCStr(std.heap.c_allocator);
+}
+
+// Pass Selected Lines Directly to Zig
+export fn parseSnippetFromString(lines: [*c]const u8) [*:0]const u8 {
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
+    const allocator = arena.allocator();
+
+    const snippet = Snippet.createFromSingleString(allocator, lines, false) catch |err| {
+        std.debug.panic("Failed to Parse Text from Direct String {s}\nErr:{}", .{ lines, err });
     };
 
-    // Convert the slice to a C-style string if needed - dupeZ null terminates it.
-    const c_string = allocator.dupeZ(u8, to_string) catch |err| {
-        std.debug.panic("Failed to Convert to C String for File {s}\nErr:{}", .{ zig_file_path, err });
-    };
-    return c_string.ptr;
+    return snippet.toCStr(std.heap.c_allocator);
 }
+
+// ============================================
 
 pub fn parseFileReturnSnippet(allocator: std.mem.Allocator, input_file_path: []const u8, print_stdout: bool) !Snippet {
 
@@ -79,4 +60,11 @@ pub fn parseFileReturnSnippet(allocator: std.mem.Allocator, input_file_path: []c
     if (print_stdout == true) try printFragmentBufferedFileIO(transformed_snippet);
 
     return transformed_snippet;
+}
+
+// Passing String directly to Snippet Struct
+
+export fn processStringFromCJS(input: [*c]const u8) void {
+    const inputString = std.mem.span(input);
+    std.debug.print("String received in Zig from JS-C: {s}\n", .{inputString});
 }
