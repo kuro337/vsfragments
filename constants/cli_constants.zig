@@ -62,7 +62,7 @@ pub const msg_outputfile_missing = "\x1b[37mTo create a new file at the specific
 // FILE NOT FOUND CONSTANTS
 pub const bold_white_single_quote = "\x1b[97m\x1b[1m'\x1b[0m\x1b[97";
 
-pub const not_found_inline_cmd_partial = "Optionally snippet can also be created from an Inlined Command.\n\n";
+pub const not_found_inline_cmd_partial = "Optionally snippets can also be created from an Inlined Command.\n\n";
 
 pub const vsfragment_inline_cmd_desc = "- generate a Snippet using Inlined Text";
 
@@ -80,9 +80,24 @@ pub const vsfragment_inline_cmd_end = bold_white_single_quote ++ "\x1b[0m";
 // Full Line for INLINED ./vsfragment Usage
 pub const USAGE_INLINE_CMD = vsfragment_inline_cmd_start ++ vsfragment_inline_cmd_mid ++ vsfragment_inline_cmd_end;
 
-pub const not_found_reminder = "\x1b[90mRecommended Usage is from creating a file and using the -f flag.\x1b[0m\n";
+pub const not_found_reminder_greydim = "\x1b[90mRecommended Usage is by creating a file and using the -f flag.\x1b[0m\n";
+pub const not_found_reminder_yellowdim = "\x1b[2;33mRecommended Usage is by creating a file and using the -f flag.\x1b[0m\n";
+pub const not_found_reminder_yellowbold = "\x1b[1;33mRecommended Usage is by creating a file and using the -f flag.\x1b[0m\n";
+pub const not_found_reminder_yellowitalic = "\x1b[33;3mRecommended Usage is by creating a file and using the -f flag.\x1b[0m\n";
+pub const not_found_reminder_yellow = "\x1b[33mRecommended Usage is by creating a file and using the -f flag\x1b[0m\n";
 
-pub const INPUT_FILE_NOT_FOUND_MSG = not_found_inline_cmd_partial ++ USAGE_INLINE_CMD ++ double_newline ++ not_found_reminder;
+pub const inline_code_sample_dim =
+    \\ \x1b[94m./vsfragment\\x1b[0m -c \x1b[37m'import csv";
+    \\ output_file_path = "output.csv"  # Replace with your desired output CSV file path
+    \\ with open(input_file_path, "r") as infile, open(output_file_path, "w", newline="") as outfile:
+    \\     reader = csv.reader(infile, delimiter="|")
+    \\     writer = csv.writer(outfile)
+    \\     for row in reader:
+    \\         writer.writerow(row)'\x1b[0m 
+    \\
+;
+
+pub const INPUT_FILE_NOT_FOUND_MSG = not_found_inline_cmd_partial ++ USAGE_INLINE_CMD ++ double_newline ++ not_found_reminder_yellow ++ double_newline ++ inline_code_sample_dim ++ newline;
 
 // HELP CONSTANTS
 

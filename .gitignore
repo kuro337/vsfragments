@@ -3,3 +3,5 @@ zig-out
 APP_README.md
 mock
 tests/FLOWS_TEST.md
+tests/stdout_color_tests.zig
+.snippets

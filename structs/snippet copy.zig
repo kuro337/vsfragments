@@ -9,19 +9,9 @@ pub const Snippet = struct {
     create_flag: bool,
 
     //     .title = "\"Go HTTP Server Snippet\": {",
-    //     .title = "  Go HTTP Server Snippet     ",
-    //               \"                      \": {
-
     //     .prefix = "\"prefix\": \"gohttpserver\",",
-    //     .prefix = "             gohttpserver   ",
-    //               \"prefix\": \"            \",",
-
     //     .body = try parsedLines.toOwnedSlice(),
-
     //     .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
-    //     .description = "                   {desc}\"",
-    //                  = "\"description\": \"      \"",
-
     //     .create_flag = write_flag,
     // };
 
@@ -34,25 +24,13 @@ pub const Snippet = struct {
         if (snippet.create_flag == true) {
             try writer.print("{{\n", .{});
         }
-        try writer.print("\t\"{s}\": {{\n\t\t\"prefix\": \"{s}\",\n\t\t\"body\": [\n", .{ snippet.title, snippet.prefix });
+        try writer.print("\t{s}\n\t\t{s}\n\t\t\"body\": [\n", .{ snippet.title, snippet.prefix });
         for (snippet.body) |parsed_line| {
             try writer.print("\t\t\t{s}\n", .{parsed_line});
         }
-        try writer.print("\t\t],\n\t\t\"description\": \"{s}\"\n\t}}\n", .{snippet.description});
+        try writer.print("\t\t],\n\t\t{s}\n\t}}\n", .{snippet.description});
         if (snippet.create_flag == true) {
             try writer.print("}}\n", .{});
-        }
-    }
-
-    pub fn setMetadata(self: *Snippet, title: ?[]const u8, prefix: ?[]const u8, description: ?[]const u8) void {
-        if (title) |newTitle| {
-            self.title = newTitle;
-        }
-        if (prefix) |newPrefix| {
-            self.prefix = newPrefix;
-        }
-        if (description) |newDescription| {
-            self.description = newDescription;
         }
     }
 
@@ -164,10 +142,10 @@ pub const Snippet = struct {
         }
 
         return Snippet{
-            .title = "Go HTTP2 Server Snippet",
-            .prefix = "gohttpserver",
+            .title = "\"Go HTTP Server Snippet\": {",
+            .prefix = "\"prefix\": \"gohttpserver\",",
             .body = try parsedLines.toOwnedSlice(),
-            .description = "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.",
+            .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
             .create_flag = write_flag,
         };
     }
@@ -249,30 +227,13 @@ pub const Snippet = struct {
         }
 
         return Snippet{
-            .title = "Go HTTP2 Server Snippet",
-            .prefix = "gohttpserver",
+            .title = "\"Go HTTP Server Snippet\": {",
+            .prefix = "\"prefix\": \"gohttpserver\",",
             .body = try parsedLines.toOwnedSlice(),
-            .description = "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.",
+            .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
             .create_flag = write_flag,
         };
     }
-
-    //     .title = "\"Go HTTP Server Snippet\": {",
-    //     .title = "  Go HTTP Server Snippet     ",
-    //               \"                      \": {
-
-    //     .prefix = "\"prefix\": \"gohttpserver\",",
-    //     .prefix = "             gohttpserver   ",
-    //               \"prefix\": \"            \",",
-
-    //     .body = try parsedLines.toOwnedSlice(),
-
-    //     .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
-    //     .description = "                   {desc}\"",
-    //                  = "\"description\": \"      \"",
-
-    //     .create_flag = write_flag,
-    // };
 
     pub fn toString(snippet: Snippet, allocator: std.mem.Allocator) ![]u8 {
         var builder = std.ArrayList(u8).init(allocator);
@@ -280,11 +241,11 @@ pub const Snippet = struct {
 
         try builder.appendSlice("{\n");
 
-        try builder.appendSlice("\t\"");
+        try builder.appendSlice("\t");
         try builder.appendSlice(snippet.title);
-        try builder.appendSlice("\": {\n\t\t\"prefix\": \"");
+        try builder.appendSlice("\n\t\t");
         try builder.appendSlice(snippet.prefix);
-        try builder.appendSlice("\",\n\t\t\"body\": [\n");
+        try builder.appendSlice("\n\t\t\"body\": [\n");
 
         for (snippet.body) |line| {
             try builder.appendSlice("\t\t\t");
@@ -292,9 +253,9 @@ pub const Snippet = struct {
             try builder.appendSlice("\n");
         }
 
-        try builder.appendSlice("\t\t],\n\t\t\"description\": \"");
+        try builder.appendSlice("\t\t],\n\t\t");
         try builder.appendSlice(snippet.description);
-        try builder.appendSlice("\"\n\t}\n}\n");
+        try builder.appendSlice("\n\t}\n}\n");
 
         return builder.toOwnedSlice();
     }

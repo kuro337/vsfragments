@@ -2,8 +2,10 @@ const std = @import("std");
 const print = std.debug.print;
 
 const Snippet = @import("snippet").Snippet;
-const constants = @import("constants");
+const Flags = @import("flags").Flags;
 const FlagEval = @import("flags").FlagEval;
+
+const constants = @import("constants");
 
 const convertInlineCodeToLines = @import("json_parser").convertInlineCodeToLines;
 const transformTextToFragment = @import("json_parser").transformTextToFragment;
@@ -30,22 +32,24 @@ const getFragmentFlags = @import("cli_parser").getFragmentFlags;
 // ===================================================
 
 pub fn main() !void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
+    // var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    // defer arena.deinit();
 
-    var allocator = arena.allocator();
+    // var allocator = arena.allocator();
+
+    const allocator = std.heap.c_allocator;
 
     const fragment_flags = try getFragmentFlags(allocator);
 
     switch (fragment_flags.evalCmds()) {
         FlagEval.invalid => try fragment_flags.printHelp(),
-        FlagEval.file => try parseFileAndPrint(allocator, fragment_flags.file_path.?),
+        FlagEval.file => try parseFileAndPrint(allocator, fragment_flags.file_path.?, fragment_flags),
         FlagEval.file_out => {
             print("\n\n{s}", .{constants.stdout_passed_snippet_file_output});
             const input_file_path = fragment_flags.file_path orelse "";
             const output_file_path = fragment_flags.output_path orelse "";
             const confirmation_flag = fragment_flags.confirmation;
-            try parseFromInputFileWriteOutput(allocator, input_file_path, output_file_path, confirmation_flag);
+            try parseFromInputFileWriteOutput(allocator, input_file_path, output_file_path, confirmation_flag, fragment_flags);
         },
         FlagEval.inline_code => {
             print("\n\n{s}\n", .{constants.stdout_passed_inline_text});
@@ -54,7 +58,9 @@ pub fn main() !void {
                 const split_lines = try convertInlineCodeToLines(allocator, code);
                 defer allocator.free(split_lines);
 
-                const transformed_snippet = try transformTextToFragment(allocator, split_lines);
+                var transformed_snippet = try transformTextToFragment(allocator, split_lines);
+                transformed_snippet.setMetadata(fragment_flags.title, fragment_flags.prefix, fragment_flags.description);
+
                 _ = try printFragmentBuffered(transformed_snippet);
             }
         },
@@ -66,7 +72,7 @@ pub fn main() !void {
 // ===================================================
 
 // if only input file passed
-pub fn parseFileAndPrint(allocator: std.mem.Allocator, input_file_path: []const u8) !void {
+pub fn parseFileAndPrint(allocator: std.mem.Allocator, input_file_path: []const u8, user_args: Flags) !void {
 
     // 1. Read File -> Write Snippet to stdout
 
@@ -76,12 +82,14 @@ pub fn parseFileAndPrint(allocator: std.mem.Allocator, input_file_path: []const 
 
     // 2. Print Snippet
 
-    const transformed_snippet = try transformFileToFragment(allocator, input_file_path, false);
+    var transformed_snippet = try transformFileToFragment(allocator, input_file_path, false);
+
+    transformed_snippet.setMetadata(user_args.title, user_args.prefix, user_args.description);
 
     _ = try printFragmentBufferedFileIO(transformed_snippet);
 }
 
-pub fn parseFromInputFileWriteOutput(allocator: std.mem.Allocator, input_file_path: []const u8, output_file_path: []const u8, confirmation_flag: bool) !void {
+pub fn parseFromInputFileWriteOutput(allocator: std.mem.Allocator, input_file_path: []const u8, output_file_path: []const u8, confirmation_flag: bool, user_args: Flags) !void {
 
     // 1. Read File -> Return Snippet -> Set Write Flag on Fragment if passed
 
@@ -89,6 +97,7 @@ pub fn parseFromInputFileWriteOutput(allocator: std.mem.Allocator, input_file_pa
     if (input_file_exists == false) return handleInputFileNotExists(input_file_path);
 
     var transformed_snippet = try transformFileToFragment(allocator, input_file_path, confirmation_flag);
+    transformed_snippet.setMetadata(user_args.title, user_args.prefix, user_args.description);
 
     // 2. Print Snippet
 

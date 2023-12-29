@@ -18,3 +18,11 @@ pub fn clearSliceMatrixMemory(slice: [][]const u8, allocator: std.mem.Allocator)
     }
     allocator.free(slice);
 }
+
+// for C allocator free the underlying 2D Slice
+pub fn freeSlices(allocator: std.mem.Allocator, slices: [][]const u8) void {
+    for (slices) |slice| {
+        allocator.free(slice);
+    }
+    allocator.free(slices);
+}

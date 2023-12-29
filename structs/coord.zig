@@ -13,3 +13,13 @@ pub const Coord = struct {
         try writer.print("Lat:{d}\nLong:{d}", .{ coord.lat, coord.long });
     }
 };
+
+pub fn main() !void {
+    var c = Coord{ .lat = 100, .long = 200 };
+
+    std.debug.print("{}\n", .{c});
+
+    c.lat = 500;
+
+    std.debug.print("{}\n", .{c});
+}

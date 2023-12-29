@@ -9,8 +9,10 @@ const Thread = std.Thread;
 const Snippet = @import("snippet").Snippet;
 const checkMemoryLeaks = @import("memory_mgmt").checkMemoryLeaks;
 const clearSliceMatrixMemory = @import("memory_mgmt").clearSliceMatrixMemory;
+const freeSlices = @import("memory_mgmt").freeSlices;
 
 const readLinesFromFile = @import("read_lines").readLinesFromFile;
+const readLinesFromFileC = @import("read_lines").readLinesFromFileC;
 
 const stdout_section_limiter = "===================";
 const stdout_result_limiter = "_____________________";
@@ -39,8 +41,11 @@ pub fn transformTextToFragment(allocator: std.mem.Allocator, code_str: []const [
 // testing type change of  linesArrayList
 
 pub fn transformFileToFragment(allocator: std.mem.Allocator, file_path: []const u8, create: bool) !Snippet {
-    const linesArrayList = try readLinesFromFile(allocator, file_path);
-    defer allocator.free(linesArrayList);
+    //const linesArrayList = try readLinesFromFile(allocator, file_path);
+    const linesArrayList = try readLinesFromFileC(file_path);
+    errdefer {
+        freeSlices(allocator, linesArrayList);
+    }
 
     const snippet = try Snippet.createFromLines(allocator, linesArrayList, create);
 

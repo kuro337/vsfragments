@@ -12,10 +12,7 @@ const printFragmentBufferedFileIO = @import("write_results").printFragmentBuffer
 // ====================== CORE_NAPI_EXPORTS ======================
 
 export fn parseFileGetSnippet(file_path: [*c]const u8, print_out: bool) [*:0]const u8 {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-
-    const allocator = arena.allocator();
+    const allocator = std.heap.c_allocator;
 
     const zig_file_path = std.mem.span(file_path);
 
@@ -23,21 +20,18 @@ export fn parseFileGetSnippet(file_path: [*c]const u8, print_out: bool) [*:0]con
         std.debug.panic("Failed to Parse Text from File {s}\nErr:{}", .{ zig_file_path, err });
     };
 
-    return snippet.toCStr(std.heap.c_allocator);
+    return snippet.toCStr(allocator);
 }
 
 // Pass Selected Lines Directly to Zig
 export fn parseSnippetFromString(lines: [*c]const u8) [*:0]const u8 {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-
-    const allocator = arena.allocator();
+    const allocator = std.heap.c_allocator;
 
     const snippet = Snippet.createFromSingleString(allocator, lines, false) catch |err| {
         std.debug.panic("Failed to Parse Text from Direct String {s}\nErr:{}", .{ lines, err });
     };
 
-    return snippet.toCStr(std.heap.c_allocator);
+    return snippet.toCStr(allocator);
 }
 
 // ============================================
@@ -68,3 +62,5 @@ export fn processStringFromCJS(input: [*c]const u8) void {
     const inputString = std.mem.span(input);
     std.debug.print("String received in Zig from JS-C: {s}\n", .{inputString});
 }
+
+// vsfragment set on Path
