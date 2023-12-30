@@ -5,3 +5,4 @@ mock
 tests/FLOWS_TEST.md
 tests/stdout_color_tests.zig
 .snippets
+structs/snippet_old.zig

@@ -44,30 +44,29 @@ pub fn build(b: *std.Build) !void {
         const exe_target_triple = try target.zigTriple(b.allocator);
 
         const bin_path = std.fmt.allocPrint(b.allocator, "bin/{s}", .{exe_target_triple}) catch "format failed";
-        _ = bin_path;
         const lib_path = std.fmt.allocPrint(b.allocator, "lib/{s}", .{exe_target_triple}) catch "format failed";
 
         for (build_configs) |config| {
             const exe_name = try std.mem.concat(allocator, u8, &[_][]const u8{ "vsfragment_cexports", "_", config.name });
 
-            // const exe = b.addExecutable(.{
-            //     .name = exe_name,
-            //     .root_source_file = .{ .path = "main.zig" },
-            //     .optimize = config.optimize,
-            //     .target = target,
-            // });
+            const exe = b.addExecutable(.{
+                .name = exe_name,
+                .root_source_file = .{ .path = "parse_file_c.zig" },
+                .optimize = config.optimize,
+                .target = target,
+            });
 
-            // addCommonModules(b, exe);
+            addCommonModules(b, exe);
 
-            // const target_output = b.addInstallArtifact(exe, .{
-            //     .dest_dir = .{
-            //         .override = .{
-            //             .custom = bin_path,
-            //         },
-            //     },
-            // });
+            const target_output = b.addInstallArtifact(exe, .{
+                .dest_dir = .{
+                    .override = .{
+                        .custom = bin_path,
+                    },
+                },
+            });
 
-            // b.getInstallStep().dependOn(&target_output.step);
+            b.getInstallStep().dependOn(&target_output.step);
 
             // =============== STATIC LIBRARY FOR C ===============
 

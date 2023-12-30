@@ -12,7 +12,7 @@ const clearSliceMatrixMemory = @import("memory_mgmt").clearSliceMatrixMemory;
 const freeSlices = @import("memory_mgmt").freeSlices;
 
 const readLinesFromFile = @import("read_lines").readLinesFromFile;
-const readLinesFromFileC = @import("read_lines").readLinesFromFileC;
+const readLinesFromFileCAllocated = @import("read_lines").readLinesFromFileCAllocated;
 
 const stdout_section_limiter = "===================";
 const stdout_result_limiter = "_____________________";
@@ -42,7 +42,7 @@ pub fn transformTextToFragment(allocator: std.mem.Allocator, code_str: []const [
 
 pub fn transformFileToFragment(allocator: std.mem.Allocator, file_path: []const u8, create: bool) !Snippet {
     //const linesArrayList = try readLinesFromFile(allocator, file_path);
-    const linesArrayList = try readLinesFromFileC(file_path);
+    const linesArrayList = try readLinesFromFileCAllocated(file_path);
     errdefer {
         freeSlices(allocator, linesArrayList);
     }

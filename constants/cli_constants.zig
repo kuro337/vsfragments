@@ -86,18 +86,7 @@ pub const not_found_reminder_yellowbold = "\x1b[1;33mRecommended Usage is by cre
 pub const not_found_reminder_yellowitalic = "\x1b[33;3mRecommended Usage is by creating a file and using the -f flag.\x1b[0m\n";
 pub const not_found_reminder_yellow = "\x1b[33mRecommended Usage is by creating a file and using the -f flag\x1b[0m\n";
 
-pub const inline_code_sample_dim =
-    \\ \x1b[94m./vsfragment\\x1b[0m -c \x1b[37m'import csv";
-    \\ output_file_path = "output.csv"  # Replace with your desired output CSV file path
-    \\ with open(input_file_path, "r") as infile, open(output_file_path, "w", newline="") as outfile:
-    \\     reader = csv.reader(infile, delimiter="|")
-    \\     writer = csv.writer(outfile)
-    \\     for row in reader:
-    \\         writer.writerow(row)'\x1b[0m 
-    \\
-;
-
-pub const INPUT_FILE_NOT_FOUND_MSG = not_found_inline_cmd_partial ++ USAGE_INLINE_CMD ++ double_newline ++ not_found_reminder_yellow ++ double_newline ++ inline_code_sample_dim ++ newline;
+pub const INPUT_FILE_NOT_FOUND_MSG = not_found_inline_cmd_partial ++ USAGE_INLINE_CMD ++ double_newline ++ not_found_reminder_yellow ++ double_newline;
 
 // HELP CONSTANTS
 

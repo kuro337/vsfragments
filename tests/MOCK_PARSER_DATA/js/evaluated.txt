@@ -1,0 +1,30 @@
+# Escaping
+\\n
+\\n\\n
+\\nn 
+\\\nn\t\tttt 
+\\\\nt\tt\\n 
+
+
+
+// original
+console.log(`Passing JS String Directly Worked.\n${directResult}`);
+
+\console.log(`Passing JS String Directly Worked.\n${directResult}`);\n\n
+
+\
+\\
+\\\
+\\nn 
+\\\nn\t\tttt 
+
+   !!! $
+
+$$$$$$
+
+${}
+$${{}}
+
+\n$\t{
+
+$

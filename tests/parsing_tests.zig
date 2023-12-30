@@ -5,6 +5,33 @@ const Snippet = @import("snippet").Snippet;
 const readLinesFromFile = @import("read_lines").readLinesFromFile;
 const clearSliceMatrixMemory = @import("memory_mgmt").clearSliceMatrixMemory;
 
+// PARSED SHOULD EVALUATE TO THIS
+// test "Color Codes Valid" {
+//     const bold_green = "\x1b[1;32mPARSE_TEST text will be bold green\x1b[0m";
+//     const red_err_text = "\x1b[31mThis text will be red error text.\x1b[0m";
+//     const red_bold_err_text = "\x1b[1mThis text will be bold error text.\x1b[0m";
+//     const warning_yellow = "\x1b[33mNot Recommended for Production\x1b[0m";
+//     const warning_bright_yellow = "\x1b[93mWWarning: Make sure no Memory Leaks Present.\x1b[0m";
+//     const warning_bold_yellow = "\x1b[1;33mWARNING: Check Memory Usage..\x1b[0m";
+//     const light_grey = "\x1b[37mThis text will be light grey\x1b[0m";
+//     const bright_white = "\x1b[97mThis text will be bright white\x1b[0m";
+//     const bold_text = "\x1b[1mThis text will be bold\x1b[0m";
+//     const italic_text = "\x1b[3mThis text will be italic\x1b[0m"; // May not work in all terminals
+//     const underline_text = "\x1b[4mThis text will be underlined\x1b[0m";
+
+//     std.debug.print("{s}\n", .{bold_green});
+//     std.debug.print("{s}\n", .{red_err_text});
+//     std.debug.print("{s}\n", .{red_bold_err_text});
+//     std.debug.print("{s}\n", .{warning_yellow});
+//     std.debug.print("{s}\n", .{warning_bright_yellow});
+//     std.debug.print("{s}\n", .{warning_bold_yellow});
+//     std.debug.print("{s}\n", .{light_grey});
+//     std.debug.print("{s}\n", .{bright_white});
+//     std.debug.print("{s}\n", .{bold_text});
+//     std.debug.print("{s}\n", .{italic_text});
+//     std.debug.print("{s}\n", .{underline_text});
+// }
+
 test "Test Reading File and Transforming to Snippet" {
     var expected_transformed_lines = [_][]const u8{
         "# Threading OS Threads",
@@ -26,10 +53,10 @@ test "Test Reading File and Transforming to Snippet" {
 
     // Create the expected Snippet instance
     const expectedSnippet = Snippet{
-        .title = "\"Go HTTP Server Snippet\": {",
-        .prefix = "\"prefix\": \"gohttpserver\",",
+        .title = "Go HTTP2 Server Snippet",
+        .prefix = "gohttpserver",
         .body = &expected_transformed_lines,
-        .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
+        .description = "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.",
         .create_flag = false,
     };
 
@@ -50,64 +77,73 @@ test "Test Reading File and Transforming to Snippet" {
 }
 
 test "Parse ANSI Coded Characters" {
-    const ansi_escaped_ml =
-        \\ const bold_green = "\x1b[1;32mThis text will be bold green\x1b[0m";
-        \\ const red_err_text = "\x1b[31mThis text will be red error text.\x1b[0m";
-        \\ const red_bold_err_text = "\x1b[1mThis text will be bold error text.\x1b[0m";
-        \\ const warning_yellow = "\x1b[33mNot Recommended for Production\x1b[0m";
-        \\ const warning_bright_yellow ="\x1b[93mWWarning: Make sure no Memory Leaks Present.\x1b[0m";
-        \\ const warning_bold_yellow = "\x1b[1;33mWARNING: Check Memory Usage..\x1b[0m";
-        \\ const light_grey = "\x1b[37mThis text will be light grey\x1b[0m";
-        \\ const bright_white = "\x1b[97mThis text will be bright white\x1b[0m";
-        \\ const bold_text = "\x1b[1mThis text will be bold\x1b[0m";
-        \\ const italic_text = "\x1b[3mThis text will be italic\x1b[0m"; // May not work in all terminals
-        \\ const underline_text = "\x1b[4mThis text will be underlined\x1b[0m";
-    ;
+    const ANSI_INPUT_DATA_FILE = "tests/MOCK_PARSER_DATA/ansi/input.txt";
+    const split_ansi = try readLinesFromFile(std.testing.allocator, ANSI_INPUT_DATA_FILE);
 
-    var splitLines = std.ArrayList([]const u8).init(std.testing.allocator);
-    defer splitLines.deinit();
-
-    var split = std.mem.splitScalar(u8, ansi_escaped_ml, '\n');
-
-    while (split.next()) |line| {
-        try splitLines.append(line);
-    }
-
-    const split_ansi = try splitLines.toOwnedSlice();
-    defer std.testing.allocator.free(split_ansi);
-
-    var og_parser = std.ArrayList([]const u8).init(std.testing.allocator);
+    const EXPECTED_OUTPUT_DATA_FILE = "tests/MOCK_PARSER_DATA/ansi/expected_output.txt";
+    const expected_output = try readLinesFromFile(std.testing.allocator, EXPECTED_OUTPUT_DATA_FILE);
 
     defer {
-        for (og_parser.items) |item| {
-            std.testing.allocator.free(item);
+        for (split_ansi) |line| {
+            std.testing.allocator.free(line);
         }
-        og_parser.deinit();
+        std.testing.allocator.free(split_ansi);
+
+        for (expected_output) |line| {
+            std.testing.allocator.free(line);
+        }
+
+        std.testing.allocator.free(expected_output);
     }
 
-    for (split_ansi) |c| {
+    for (split_ansi, 0..) |c, i| {
         const serialized_line = try Snippet.parseLine(std.testing.allocator, c);
-        try og_parser.append(serialized_line);
+
+        defer std.testing.allocator.free(serialized_line);
+
+        try std.testing.expectEqualStrings(serialized_line, expected_output[i]);
     }
 
-    const arr = &[_][]const u8{
-        " const bold_green = \"\\x1b[1;32mThis text will be bold green\\x1b[0m\";",
-        " const red_err_text = \"\\x1b[31mThis text will be red error text.\\x1b[0m\";",
-        " const red_bold_err_text = \"\\x1b[1mThis text will be bold error text.\\x1b[0m\";",
-        " const warning_yellow = \"\\x1b[33mNot Recommended for Production\\x1b[0m\";",
-        " const warning_bright_yellow =\"\\x1b[93mWWarning: Make sure no Memory Leaks Present.\\x1b[0m\";",
-        " const warning_bold_yellow = \"\\x1b[1;33mWARNING: Check Memory Usage..\\x1b[0m\";",
-        " const light_grey = \"\\x1b[37mThis text will be light grey\\x1b[0m\";",
-        " const bright_white = \"\\x1b[97mThis text will be bright white\\x1b[0m\";",
-        " const bold_text = \"\\x1b[1mThis text will be bold\\x1b[0m\";",
-        " const italic_text = \"\\x1b[3mThis text will be italic\\x1b[0m\"; // May not work in all terminals",
-        " const underline_text = \"\\x1b[4mThis text will be underlined\\x1b[0m\";",
-    };
-    _ = arr;
+    try std.testing.expect(true);
+}
 
-    for (og_parser.items) |p| {
-        _ = p; // autofix
+// BACKSLASH ISSUES \n ISSUES
 
-        // std.debug.print("{s}\n", .{p}); // converted lines shud be equal to above lines
+// Input  -> Desired Parse
+
+//  \n    ->  \\n
+//  $     ->  \\$
+//  \\n   ->  \\\\\\n   [ \ -> \\ , \n -> \\n - but then side by side it evalutes into \n instead of \\n ]
+//  \\nn  -> \\\\\\nn
+
+test "JS console.log with Newline Parsing Tests" {
+    const INPUT_FILE_PATH_JS_BACKTICKS = "tests/MOCK_PARSER_DATA/js/input_backticks.txt";
+    const input_data = try readLinesFromFile(std.testing.allocator, INPUT_FILE_PATH_JS_BACKTICKS);
+
+    const EXPECTED_OUTPUT_DATA_FILE = "tests/MOCK_PARSER_DATA/js/output_expected.txt";
+
+    const expected_output = try readLinesFromFile(std.testing.allocator, EXPECTED_OUTPUT_DATA_FILE);
+
+    defer {
+        for (input_data) |line| {
+            std.testing.allocator.free(line);
+        }
+        std.testing.allocator.free(input_data);
+
+        for (expected_output) |line| {
+            std.testing.allocator.free(line);
+        }
+
+        std.testing.allocator.free(expected_output);
     }
+
+    for (input_data, 0..) |c, i| {
+        const serialized_line = try Snippet.parseLine(std.testing.allocator, c);
+
+        defer std.testing.allocator.free(serialized_line);
+
+        try std.testing.expectEqualStrings(serialized_line, expected_output[i]);
+    }
+
+    try std.testing.expect(true);
 }

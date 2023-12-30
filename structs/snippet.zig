@@ -63,8 +63,10 @@ pub const Snippet = struct {
         // Add opening quote
         try escapedLineBuilder.append('\"');
 
+        var prev_backslash_index: usize = 0;
+
         var spaceCount: usize = 0;
-        for (line) |char| {
+        for (line, 0..) |char, i| {
             switch (char) {
                 ' ' => {
                     spaceCount += 1;
@@ -82,9 +84,19 @@ pub const Snippet = struct {
                     // Append a backslash to escape it, without adding any spaces
                     try escapedLineBuilder.append('\\');
                     try escapedLineBuilder.append('\\');
+                    if (i == prev_backslash_index + 1) {
+                        try escapedLineBuilder.append('\\');
+                        try escapedLineBuilder.append('\\');
+                    }
+                    prev_backslash_index = i;
                 },
-                '$', '"' => {
+                '"' => {
                     // Escape special characters
+                    try escapedLineBuilder.append('\\');
+                    try escapedLineBuilder.append(char);
+                },
+                '$' => { // prev above block has '$','"' together - this one is new for $
+                    try escapedLineBuilder.append('\\');
                     try escapedLineBuilder.append('\\');
                     try escapedLineBuilder.append(char);
                 },

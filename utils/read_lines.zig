@@ -22,7 +22,7 @@ pub fn readLinesFromFile(allocator: std.mem.Allocator, filename: []const u8) ![]
     return lines.toOwnedSlice();
 }
 
-pub fn readLinesFromFileC(filename: []const u8) ![][]const u8 {
+pub fn readLinesFromFileCAllocated(filename: []const u8) ![][]const u8 {
     const allocator = std.heap.c_allocator;
 
     const file = try std.fs.cwd().openFile(filename, .{});
