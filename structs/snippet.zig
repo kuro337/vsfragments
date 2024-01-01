@@ -8,23 +8,6 @@ pub const Snippet = struct {
     description: []const u8,
     create_flag: bool,
 
-    //     .title = "\"Go HTTP Server Snippet\": {",
-    //     .title = "  Go HTTP Server Snippet     ",
-    //               \"                      \": {
-
-    //     .prefix = "\"prefix\": \"gohttpserver\",",
-    //     .prefix = "             gohttpserver   ",
-    //               \"prefix\": \"            \",",
-
-    //     .body = try parsedLines.toOwnedSlice(),
-
-    //     .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
-    //     .description = "                   {desc}\"",
-    //                  = "\"description\": \"      \"",
-
-    //     .create_flag = write_flag,
-    // };
-
     pub fn format(
         snippet: Snippet,
         comptime _: []const u8,
@@ -44,7 +27,12 @@ pub const Snippet = struct {
         }
     }
 
-    pub fn setMetadata(self: *Snippet, title: ?[]const u8, prefix: ?[]const u8, description: ?[]const u8) void {
+    pub fn setMetadata(
+        self: *Snippet,
+        title: ?[]const u8,
+        prefix: ?[]const u8,
+        description: ?[]const u8,
+    ) void {
         if (title) |newTitle| {
             self.title = newTitle;
         }
@@ -54,6 +42,43 @@ pub const Snippet = struct {
         if (description) |newDescription| {
             self.description = newDescription;
         }
+    }
+
+    pub fn destroy(self: *Snippet, allocator: std.mem.Allocator) void {
+        for (self.body) |line| {
+            std.testing.allocator.free(line);
+        }
+
+        allocator.free(self.body);
+    }
+
+    pub fn transformFileToSnippet(allocator: std.mem.Allocator, filename: []const u8) !Snippet {
+        const file = try std.fs.cwd().openFile(filename, .{});
+        defer file.close();
+
+        var buf_reader = std.io.bufferedReader(file.reader());
+        var in_stream = buf_reader.reader();
+
+        var lines = std.ArrayList([]const u8).init(allocator);
+        defer lines.deinit();
+
+        var buf: [1024]u8 = undefined; //1024 bytes or 1kb
+
+        while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+            const line_copy = try allocator.dupe(u8, line);
+            try lines.append(line_copy);
+        }
+
+        const file_lines = try lines.toOwnedSlice();
+        defer {
+            for (file_lines) |slice| {
+                allocator.free(slice);
+            }
+            allocator.free(file_lines);
+        }
+
+        const snippet = try Snippet.createFromLines(allocator, file_lines, false);
+        return snippet;
     }
 
     pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) ![]const u8 {
@@ -117,62 +142,33 @@ pub const Snippet = struct {
         return escapedLineBuilder.toOwnedSlice();
     }
 
+    // IMPORTANT -> call snippet.destroy() once done to free String Memory
+
     pub fn createFromLines(allocator: std.mem.Allocator, lines: []const []const u8, write_flag: bool) !Snippet {
         var parsedLines = std.ArrayList([]const u8).init(allocator);
         defer parsedLines.deinit();
 
         const totalLines = lines.len;
 
+        // for last line dont add a Comma
         for (lines, 0..) |line, i| {
-            var escapedLineBuilder = std.ArrayList(u8).init(allocator);
-            defer escapedLineBuilder.deinit();
+            const serialized_line = try parseLine(allocator, line);
 
-            // Add opening quote
-            try escapedLineBuilder.append('\"');
+            // If it's the last line, remove the last character (the comma)
 
-            var spaceCount: usize = 0;
-            for (line) |char| {
-                switch (char) {
-                    ' ' => {
-                        spaceCount += 1;
-                        if (spaceCount == 4) {
-                            // Handle tab logic
-                            try escapedLineBuilder.append('\\');
-                            try escapedLineBuilder.append('t');
-                            spaceCount = 0;
-                        } else {
-                            // Append a single space
-                            try escapedLineBuilder.append(' ');
-                        }
-                    },
-                    '\\' => {
-                        // Append a backslash to escape it, without adding any spaces
-                        try escapedLineBuilder.append('\\');
-                        try escapedLineBuilder.append('\\');
-                    },
-                    '$', '"' => {
-                        // Escape special characters
-                        try escapedLineBuilder.append('\\');
-                        try escapedLineBuilder.append(char);
-                    },
-                    else => {
-                        // Reset space counter and append other characters directly
-                        spaceCount = 0;
-                        try escapedLineBuilder.append(char);
-                    },
-                }
+            if (i == totalLines - 1) {
+                const new_slice = try allocator.alloc(u8, serialized_line.len - 1);
+
+                @memcpy(new_slice, serialized_line[0 .. serialized_line.len - 1]);
+                allocator.free(serialized_line);
+
+                try parsedLines.append(new_slice);
+
+                //try parsedLines.append(serialized_line[0 .. serialized_line.len - 1]);
+                break;
             }
 
-            // Add closing quote
-            try escapedLineBuilder.append('\"');
-
-            // Add comma except for the last line
-            if (i < totalLines - 1) {
-                try escapedLineBuilder.append(',');
-            }
-
-            const finalEscapedLine = try escapedLineBuilder.toOwnedSlice();
-            try parsedLines.append(finalEscapedLine);
+            try parsedLines.append(serialized_line);
         }
 
         return Snippet{
@@ -267,101 +263,6 @@ pub const Snippet = struct {
             .description = "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.",
             .create_flag = write_flag,
         };
-    }
-
-    //     .title = "\"Go HTTP Server Snippet\": {",
-    //     .title = "  Go HTTP Server Snippet     ",
-    //               \"                      \": {
-
-    //     .prefix = "\"prefix\": \"gohttpserver\",",
-    //     .prefix = "             gohttpserver   ",
-    //               \"prefix\": \"            \",",
-
-    //     .body = try parsedLines.toOwnedSlice(),
-
-    //     .description = "\"description\": \"Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.\"",
-    //     .description = "                   {desc}\"",
-    //                  = "\"description\": \"      \"",
-
-    //     .create_flag = write_flag,
-    // };
-
-    pub fn toString(snippet: Snippet, allocator: std.mem.Allocator) ![]u8 {
-        var builder = std.ArrayList(u8).init(allocator);
-        defer builder.deinit();
-
-        try builder.appendSlice("{\n");
-
-        try builder.appendSlice("\t\"");
-        try builder.appendSlice(snippet.title);
-        try builder.appendSlice("\": {\n\t\t\"prefix\": \"");
-        try builder.appendSlice(snippet.prefix);
-        try builder.appendSlice("\",\n\t\t\"body\": [\n");
-
-        for (snippet.body) |line| {
-            try builder.appendSlice("\t\t\t");
-            try builder.appendSlice(line);
-            try builder.appendSlice("\n");
-        }
-
-        try builder.appendSlice("\t\t],\n\t\t\"description\": \"");
-        try builder.appendSlice(snippet.description);
-        try builder.appendSlice("\"\n\t}\n}\n");
-
-        return builder.toOwnedSlice();
-    }
-
-    pub fn toCStr(snippet: Snippet, allocator: std.mem.Allocator) [*:0]const u8 {
-        var out = std.ArrayList(u8).initCapacity(allocator, 4096) catch unreachable;
-        defer out.deinit();
-
-        snippet.toWriter(out.writer()) catch unreachable;
-        out.append(0) catch unreachable; // c-str sentinel terminater 0
-
-        const final_buf = out.toOwnedSlice() catch unreachable;
-
-        //return final_buf.ptr doesnt work because we need to coerce the type to be 0 sentinel terminated
-
-        const cstr = final_buf[0 .. final_buf.len - 1 :0]; // validate sentinel termination
-
-        return cstr.ptr;
-    }
-
-    pub fn toStr(snippet: Snippet, allocator: std.mem.Allocator) []const u8 {
-        var out = std.ArrayList(u8).initCapacity(allocator, 4096) catch unreachable;
-        defer out.deinit();
-
-        snippet.toWriter(out.writer()) catch unreachable;
-        out.append(0) catch unreachable;
-
-        const final_buf = out.toOwnedSlice() catch unreachable;
-
-        return final_buf;
-
-        // @Usage
-
-        //  const s_str = snippet.toStr(allocator);
-        //  std.debug.print("normal str:\n{s}\n", .{s_str});
-    }
-
-    pub fn toWriter(snippet: Snippet, writer: anytype) @TypeOf(writer).Error!void {
-        try writer.writeAll("{\n");
-
-        try writer.writeAll("\t");
-        try writer.writeAll(snippet.title);
-        try writer.writeAll("\n\t\t");
-        try writer.writeAll(snippet.prefix);
-        try writer.writeAll("\n\t\t\"body\": [\n");
-
-        for (snippet.body) |line| {
-            try writer.writeAll("\t\t\t");
-            try writer.writeAll(line);
-            try writer.writeAll("\n");
-        }
-
-        try writer.writeAll("\t\t],\n\t\t");
-        try writer.writeAll(snippet.description);
-        try writer.writeAll("\n\t}\n}\n");
     }
 };
 

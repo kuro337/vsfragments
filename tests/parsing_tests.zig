@@ -142,8 +142,54 @@ test "JS console.log with Newline Parsing Tests" {
 
         defer std.testing.allocator.free(serialized_line);
 
-        try std.testing.expectEqualStrings(serialized_line, expected_output[i]);
+        try std.testing.expectEqualStrings(expected_output[i], serialized_line);
     }
 
     try std.testing.expect(true);
 }
+
+test "Snippet File Parsing C NAPI Tests" {
+    const allocator = std.testing.allocator;
+
+    const INPUT_FILE_PATH_METADATA = "tests/MOCK_PARSER_DATA/metadata/input.txt";
+    const EXPECTED_OUTPUT_DATA_FILE = "tests/MOCK_PARSER_DATA/metadata/output_expected.txt";
+    const expected_output = try readLinesFromFile(allocator, EXPECTED_OUTPUT_DATA_FILE);
+
+    const title = "Zig Metadata Export";
+    const prefix = "zigmetadatatest";
+    const description = "Custom Description for Metadata Export";
+
+    var snippet = try Snippet.transformFileToSnippet(allocator, INPUT_FILE_PATH_METADATA);
+
+    snippet.setMetadata(title, prefix, description);
+
+    // Returning a C String and Zig String Directly from the Struct
+    const formatted_c_str = try std.fmt.allocPrintZ(allocator, "{s}", .{snippet});
+    const formatted_zig_str = try std.fmt.allocPrint(allocator, "{s}", .{snippet});
+    // std.debug.print("PrintAlloc C Struct\n\n{s}\n\n", .{formatted_c_str});
+    // std.debug.print("PrintAlloc Zig Struct\n\n{s}\n\n", .{formatted_zig_str});
+
+    defer {
+        for (expected_output) |line| {
+            std.testing.allocator.free(line);
+        }
+
+        std.testing.allocator.free(expected_output);
+
+        allocator.free(formatted_c_str);
+        allocator.free(formatted_zig_str);
+        snippet.destroy(allocator);
+    }
+
+    for (snippet.body, 0..) |line, i| {
+        try std.testing.expectEqualStrings(line, expected_output[i]);
+        try std.testing.expect(true);
+    }
+
+    try std.testing.expectEqualStrings(snippet.title, title);
+    try std.testing.expectEqualStrings(snippet.prefix, prefix);
+    try std.testing.expectEqualStrings(snippet.description, description);
+}
+
+// Structure
+// std.fmt.allocPrint(allocator: mem.Allocator, comptime fmt: []const u8, args: anytype)

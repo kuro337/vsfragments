@@ -1,18 +1,15 @@
 const std = @import("std");
 
-const build_targets = [_]std.zig.CrossTarget{
-    .{},
-    //.{
-    //     .cpu_arch = .aarch64,
-    //     .os_tag = .macos,
-    // }, .{
-    //     .cpu_arch = .x86_64,
-    //     .os_tag = .linux,
-    // }, .{
-    //     .cpu_arch = .x86_64,
-    //     .os_tag = .windows,
-    // }
-};
+const build_targets = [_]std.zig.CrossTarget{ .{}, .{
+    .cpu_arch = .aarch64,
+    .os_tag = .macos,
+}, .{
+    .cpu_arch = .x86_64,
+    .os_tag = .linux,
+}, .{
+    .cpu_arch = .x86_64,
+    .os_tag = .windows,
+} };
 
 const BuildConfig = struct {
     name: []const u8,
@@ -74,6 +71,23 @@ pub fn build(b: *std.Build) !void {
 
         const run_cli_parsing_tests = b.addRunArtifact(cli_parsing_tests);
         test_step.dependOn(&run_cli_parsing_tests.step);
+
+        // =================== REGRESSION TESTS ===================
+        const enum_tests = b.addTest(.{
+            .root_source_file = .{ .path = "tests/enum_tests.zig" },
+            .target = target,
+        });
+
+        const run_enum_tests = b.addRunArtifact(enum_tests);
+        test_step.dependOn(&run_enum_tests.step);
+
+        const json_tests = b.addTest(.{
+            .root_source_file = .{ .path = "tests/json_tests.zig" },
+            .target = target,
+        });
+
+        const run_json_tests = b.addRunArtifact(json_tests);
+        test_step.dependOn(&run_json_tests.step);
     }
 
     // =================== BINARIES for TARGET + OPTIMIZATION_MODE ===================
@@ -88,6 +102,8 @@ pub fn build(b: *std.Build) !void {
                 .optimize = config.optimize,
                 .target = target,
             });
+
+            exe.linkLibC();
 
             addCommonModules(b, exe);
 
@@ -182,22 +198,3 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
     exe.addModule("write_results", write_results);
     exe.addModule("create_file", create_file);
 }
-
-// $ zig build test --summary all
-// $ zig build test --summary failures
-
-// $ zig build  --summary all
-
-// cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/native && ./vsfragment_safe
-
-// Optimization Options  between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall
-
-// zig build -Dtarget=x86_64-windows -Doptimize=ReleaseSmall --summary all
-
-// Print File Architecture ARM or x86_64
-// file filename
-
-// $ zig2 build test --summary all
-// $ zig2 build test --summary failures
-
-// $ zig2 build  --summary all

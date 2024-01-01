@@ -34,11 +34,6 @@ const getFragmentFlags = @import("cli_parser").getFragmentFlags;
 // ===================================================
 
 pub fn main() !void {
-    // var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    // defer arena.deinit();
-
-    // var allocator = arena.allocator();
-
     const allocator = std.heap.c_allocator;
 
     const fragment_flags = try getFragmentFlags(allocator);

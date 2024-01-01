@@ -1,18 +1,15 @@
 const std = @import("std");
 
-const build_targets = [_]std.zig.CrossTarget{
-    .{},
-    //.{
-    //     .cpu_arch = .aarch64,
-    //     .os_tag = .macos,
-    // }, .{
-    //     .cpu_arch = .x86_64,
-    //     .os_tag = .linux,
-    // }, .{
-    //     .cpu_arch = .x86_64,
-    //     .os_tag = .windows,
-    // }
-};
+const build_targets = [_]std.zig.CrossTarget{ .{}, .{
+    .cpu_arch = .aarch64,
+    .os_tag = .macos,
+}, .{
+    .cpu_arch = .x86_64,
+    .os_tag = .linux,
+}, .{
+    .cpu_arch = .x86_64,
+    .os_tag = .windows,
+} };
 
 const BuildConfig = struct {
     name: []const u8,
@@ -44,29 +41,32 @@ pub fn build(b: *std.Build) !void {
         const exe_target_triple = try target.zigTriple(b.allocator);
 
         const bin_path = std.fmt.allocPrint(b.allocator, "bin/{s}", .{exe_target_triple}) catch "format failed";
+        _ = bin_path; // autofix
         const lib_path = std.fmt.allocPrint(b.allocator, "lib/{s}", .{exe_target_triple}) catch "format failed";
 
         for (build_configs) |config| {
             const exe_name = try std.mem.concat(allocator, u8, &[_][]const u8{ "vsfragment_cexports", "_", config.name });
 
-            const exe = b.addExecutable(.{
-                .name = exe_name,
-                .root_source_file = .{ .path = "parse_file_c.zig" },
-                .optimize = config.optimize,
-                .target = target,
-            });
+            // =============== START_BINARY_BUILD_CMT ===============
+            // const exe = b.addExecutable(.{
+            //     .name = exe_name,
+            //     .root_source_file = .{ .path = "parse_file_c.zig" },
+            //     .optimize = config.optimize,
+            //     .target = target,
+            // });
 
-            addCommonModules(b, exe);
+            // addCommonModules(b, exe);
 
-            const target_output = b.addInstallArtifact(exe, .{
-                .dest_dir = .{
-                    .override = .{
-                        .custom = bin_path,
-                    },
-                },
-            });
+            // const target_output = b.addInstallArtifact(exe, .{
+            //     .dest_dir = .{
+            //         .override = .{
+            //             .custom = bin_path,
+            //         },
+            //     },
+            // });
 
-            b.getInstallStep().dependOn(&target_output.step);
+            // b.getInstallStep().dependOn(&target_output.step);
+            // =============== END_BINARY_BUILD_CMT ===============
 
             // =============== STATIC LIBRARY FOR C ===============
 
@@ -99,8 +99,6 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
 
     const memory_mgmt = b.addModule("memory_mgmt", .{ .source_file = .{ .path = "../utils/memory_mgmt.zig" } });
     const constants = b.addModule("constants", .{ .source_file = .{ .path = "../constants/cli_constants.zig" } });
-
-    const ffi_ally = b.addModule("ffi_ally", .{ .source_file = .{ .path = "../structs/ffi_ally.zig" } });
 
     const modify_snippet = b.addModule("modify_snippet", .{
         .source_file = .{ .path = "../core/modify_snippet.zig" },
@@ -137,7 +135,6 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
         },
     });
 
-    exe.addModule("ffi_ally", ffi_ally);
     exe.addModule("modify_snippet", modify_snippet);
     exe.addModule("create_file", create_file);
     exe.addModule("json_parser", json_parser);
@@ -150,17 +147,3 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
     exe.addModule("memory_mgmt", memory_mgmt);
     exe.addModule("constants", constants);
 }
-
-// $ zig build test --summary all
-// $ zig build test --summary failures
-
-// $ zig build  --summary all
-
-// cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/native && ./vsfragment_safe
-
-// Optimization Options  between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall
-
-// zig build -Dtarget=x86_64-windows -Doptimize=ReleaseSmall --summary all
-
-// Print File Architecture ARM or x86_64
-// file filename

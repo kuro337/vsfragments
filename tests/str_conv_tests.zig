@@ -1,9 +1,5 @@
 const std = @import("std");
 
-pub fn main() !void {
-    std.debug.print("{s}\n", .{"Hello, world!"});
-}
-
 test "Create a String" {
     const s = "Hello World Zig Test";
 
@@ -24,6 +20,7 @@ pub fn convertStringToStringSlice(allocator: std.mem.Allocator, code_str: []cons
     while (split.next()) |line| {
         try splitLines.append(line);
     }
+
     return splitLines.toOwnedSlice();
 }
 

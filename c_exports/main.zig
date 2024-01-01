@@ -10,6 +10,21 @@ pub fn main() void {
     print("toString() Snippet \n\n{s}\n", .{parsed_str});
 }
 
+// pub fn main() !void {
+//     // Test File Path :  /Users/kuro/Documents/Code/JS/FFI/zig_c_napi/ffi/index.js
+//     const file_path = "/Users/kuro/Documents/Code/JS/FFI/zig_c_napi/ffi/indexparsedcopy.js";
+//     const title = "Zig Metadata Export";
+//     const prefix = "zigmetadatatest";
+//     const description = "Custom Description for Metadata Export";
+
+//     const new_snip_c_str = createSnippetWithMetadata(file_path, title, prefix, description, true, true);
+//     _ = new_snip_c_str; // autofix
+//     const c_str_without_enclosing = createSnippetWithMetadata(file_path, title, prefix, description, false, true);
+
+//     std.debug.print("Parsed Snippet with Metadata\n{s}", .{c_str_without_enclosing});
+
+//     // final_buf[0 .. final_buf.len - 1 :0] In case c string type issues
+// }
 
 // export fn parseFileGetSnippet(file_path: [*c]const u8) [*c]const u8 {
 //     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);

@@ -31,7 +31,7 @@ test "JSON Parse - Snippet, String, Array, Map -> Requires Allocator" {
 
     try std.json.stringify(user, .{}, string.writer());
 
-    print("Stringified {s}\n", .{string.items});
+    //print("Stringified {s}\n", .{string.items});
 
     //  print("parsed {s}", user);
 }
@@ -60,8 +60,8 @@ test "JSON Parse - String, Array, Map -> Requires Allocator" {
     try expect(eql(u8, user.name, "Joe"));
     try expect(user.age == 25);
 
-    print("\nparsed {s}\n", .{user.name});
-    print("parsed {d}\n", .{user.age});
+    //print("\nparsed {s}\n", .{user.name});
+    //print("parsed {d}\n", .{user.age});
 
     // cant print the json directly
     //print("parsed {}\n", .{user});
@@ -72,11 +72,12 @@ test "JSON Parse - String, Array, Map -> Requires Allocator" {
 
     try std.json.stringify(user, .{}, string.writer());
 
-    print("Stringified {s}\n", .{string.items});
-
+    // print("Stringified {s}\n", .{string.items});
+    try expect(user.age < 300);
     const string_to_slice_parsed = try string.toOwnedSlice();
+    _ = string_to_slice_parsed; // autofix
 
-    print("Type {s}\n", .{string_to_slice_parsed});
+    //print("Type {s}\n", .{string_to_slice_parsed});
 
     defer parsed.deinit();
 
