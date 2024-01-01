@@ -1,3 +1,5 @@
+<br/>
+
 # vsfragments
 
 <br/>
@@ -12,11 +14,11 @@
 <br/>
 
 
-_Simple, Lightweight, Lightning Fast_ Binary application to generate Code Fragments.
+_Simple, Lightweight, Lightning Fast_ Native System Binary for generating Code Fragments.
 
 <br/>
 
-Additionally embeddedable and extensible directly as a Static Library from **C** or **Node**.
+Embeddedable and extensible directly as a Static Library from **C** or **Node**.
 
 <br/>
 
@@ -27,10 +29,9 @@ Additionally embeddedable and extensible directly as a Static Library from **C**
 $ vsfragment
 
 *******************************************************************************
-
 vsfragment - Create reusable Code Fragments for reuse and rapid development
-
 *******************************************************************************
+
 
 Usage: vsfragment [flags]
 
@@ -52,8 +53,8 @@ _____________________
 - generate a Snippet using Inlined Text
 
 vsfragment -c 'import csv
-output_file_path = "output.csv"  # Replace with your desired output CSV file path
-with open(input_file_path, "r") as infile, open(output_file_path, "w", newline="") as outfile:
+output_file_path = "output.csv"  
+with open(input_path, "r") as infile, open(out_path, "w", newline="") as outfile:
     reader = csv.reader(infile, delimiter="|")
     writer = csv.writer(outfile)
     for row in reader:
@@ -64,7 +65,7 @@ with open(input_file_path, "r") as infile, open(output_file_path, "w", newline="
 Flags:
 
   -f, --file   <file path>     Path to a VSCode Snippet File
-  -o, --output <file_path>     Path to an Existing VSCode Snippets File or Empty File
+  -o, --output <file_path>     Path to a VSCode Snippets File or any file
   -c, --code   <string...>     Code String to convert. Supports Multiline.
   -l, --lang   <language>      Language of the Code String
   -p, --print                  Print the Fragment to stdout
@@ -104,11 +105,12 @@ Flags:
 <br/>
 
 ```bash
+
 - generate a Snippet using inlined text directly from your shell
 
 vsfragment -c 'import csv
-output_file_path = "output.csv"  # Replace with your desired output CSV file path
-with open(input_file_path, "r") as infile, open(output_file_path, "w", newline="") as outfile:
+output_file_path = "output.csv"  
+with open(input_path, "r") as infile, open(out_path, "w", newline="") as outfile:
     reader = csv.reader(infile, delimiter="|")
     writer = csv.writer(outfile)
     for row in reader:
@@ -121,23 +123,24 @@ with open(input_file_path, "r") as infile, open(output_file_path, "w", newline="
 Successfully Generated Fragment from Inline Input
 ============================================================================
 
-        "Go HTTP2 Server Snippet": {
-                "prefix": "python_read_file",
-                "body": [
-                        "import csv",
-                        "output_file_path = \"output.csv\"",
-                        "with open(input_file_path, \"r\") as infile",
-                        "   \treader = csv.reader(infile, delimiter=\"|\")",
-                        "   \twriter = csv.writer(outfile)",
-                        "   \tfor row in reader:",
-                        "   \t   \twriter.writerow(row)"
-                ],
-                "description": "type python_read_file in vscode to use snippet. velocity!"
-        }
+"Go HTTP2 Server Snippet": {
+        "prefix": "python_read_file",
+        "body": [
+                "import csv",
+                "output_file_path = \"output.csv\"",
+                "with open(input_file_path, \"r\") as infile",
+                "   \treader = csv.reader(infile, delimiter=\"|\")",
+                "   \twriter = csv.writer(outfile)",
+                "   \tfor row in reader:",
+                "   \t   \twriter.writerow(row)"
+        ],
+        "description": "type python_read_file in vscode to use snippet. velocity!"
+}
 
 ============================================================================
-Paste fragment into the VSCode .code-snippets file and begin typing Command + Space and the Prefix (gohttp...) to paste the Snippet into your IDE.
-
+Paste fragment into the VSCode .code-snippets file and 
+begin typing Command + Space and the Prefix (gohttp...) 
+to paste the Snippet into your IDE.
 ```
 
 
@@ -167,6 +170,7 @@ built and profiled against
 
 
 ```bash
+
 $ zig build  --summary all 
 
 
@@ -227,6 +231,7 @@ Complete steps to setup the **Compiler** and **Language Server** are included.
 <br/>
 
 ```rust
+
 # Threading OS Threads
 
 const std = @import("std");
@@ -290,6 +295,7 @@ Resulting Snippet that VSCode uses as a Zig Code Fragment
 <br/>
 
 ```json
+
 {
   "prefix": "testparse",
   "body": [
