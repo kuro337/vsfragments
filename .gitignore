@@ -8,3 +8,4 @@ tests/stdout_color_tests.zig
 structs/snippet_old.zig
 c_exports/main.zig
 tests/snip.json
+.DS_Store
