@@ -129,22 +129,3 @@ pub fn parseFromInputFileWriteOutput(allocator: std.mem.Allocator, input_file_pa
 
     print("\nSuccessfully Updated Snippets File \x1b[92m{s}\x1b[0m\n", .{output_file_path});
 }
-
-// ===================================================
-// ===================================================
-
-pub fn testSnippetStringer(allocator: std.mem.Allocator, input_file_path: []const u8) !void {
-
-    // cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/native && \
-    //  ./vsfragment_fast -f test.txt
-
-    // 1. Read File -> Write Snippet to stdout
-
-    const input_file_exists = try checkFileExists(input_file_path);
-
-    if (input_file_exists == false) return handleInputFileNotExists(input_file_path);
-
-    // 2. Print Snippet
-
-    try transformFileToFragment(allocator, input_file_path, false);
-}
