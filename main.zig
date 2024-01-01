@@ -7,8 +7,6 @@ const FlagEval = @import("flags").FlagEval;
 
 const constants = @import("constants");
 
-// VERY IMPORTANT parsing_tests.zig
-
 const convertInlineCodeToLines = @import("json_parser").convertInlineCodeToLines;
 const transformTextToFragment = @import("json_parser").transformTextToFragment;
 const transformFileToFragment = @import("json_parser").transformFileToFragment;
@@ -28,10 +26,6 @@ const printFragmentBufferedFileIO = @import("write_results").printFragmentBuffer
 
 const printCLIFlags = @import("cli_parser").printCLIFlags;
 const getFragmentFlags = @import("cli_parser").getFragmentFlags;
-
-// ===================================================
-//                     ENTRY
-// ===================================================
 
 pub fn main() !void {
     const allocator = std.heap.c_allocator;
