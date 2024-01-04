@@ -4,7 +4,13 @@ const build_targets = [_]std.zig.CrossTarget{ .{}, .{
     .cpu_arch = .aarch64,
     .os_tag = .macos,
 }, .{
+    .cpu_arch = .aarch64,
+    .os_tag = .linux,
+}, .{
     .cpu_arch = .x86_64,
+    .os_tag = .linux,
+}, .{
+    .cpu_arch = .aarch64,
     .os_tag = .linux,
 }, .{
     .cpu_arch = .x86_64,
@@ -198,3 +204,5 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
     exe.addModule("write_results", write_results);
     exe.addModule("create_file", create_file);
 }
+
+// /Users/kuro/Documents/Podman/zig_container/binaries/

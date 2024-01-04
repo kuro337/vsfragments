@@ -8,6 +8,8 @@ const handleInputFileNotExists = @import("create_file").handleInputFileNotExists
 const transformFileToFragment = @import("json_parser").transformFileToFragment;
 const printFragmentBufferedFileIO = @import("write_results").printFragmentBufferedFileIO;
 
+// NOTE: use Snippet.convertFileToSnippet() everywhere - MOST efficient
+
 // ====================== CORE_NAPI_EXPORTS ======================
 
 export fn parseFileGetSnippet(file_path: [*c]const u8, print_out: bool) [*:0]const u8 {

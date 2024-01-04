@@ -50,6 +50,8 @@ pub const usages_bold = "\x1b[1mUsages:\x1b[0m";
 
 pub const success_fragment_usage = "\x1b[97mPaste fragment into the VSCode \x1b[1m.code-snippets\x1b[22m\x1b[97m file and begin typing \x1b[1mCommand + Space\x1b[22m\x1b[97m and the \x1b[1mPrefix\x1b[22m\x1b[97m \x1b[37m(gohttp...)\x1b[97m to paste the Snippet into your IDE.\x1b[0m";
 
+pub const inline_success_fragment_usage = "\x1b[97m\x1b[1mNote:\x1b[33m Escape Chars such as \x1b[1;97m\\\x1b[33m are escaped by most shells. Use the \x1b[1;97m-f\x1b[33m \x1b[1;97mfile\x1b[33m flag if \\ present in inline text.\x1b[0m";
+
 pub const successfully_created_inline_msg = "\x1b[92mSuccessfully Generated Fragment from Inline Input\x1b[0m";
 
 pub const successfully_created_fileio_msg = "\x1b[92mSuccessfully Generated Fragment from Input File.\x1b[0m";

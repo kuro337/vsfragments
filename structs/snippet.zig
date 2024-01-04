@@ -52,6 +52,7 @@ pub const Snippet = struct {
         allocator.free(self.body);
     }
 
+    // NOTE: use Snippet.convertFileToSnippet() everywhere - MOST efficient
     pub fn transformFileToSnippet(allocator: std.mem.Allocator, filename: []const u8) !Snippet {
         const file = try std.fs.cwd().openFile(filename, .{});
         defer file.close();
@@ -79,6 +80,44 @@ pub const Snippet = struct {
 
         const snippet = try Snippet.createFromLines(allocator, file_lines, false);
         return snippet;
+    }
+
+    // read file and pass lines directly to parseLine
+    pub fn convertFileToSnippet(allocator: std.mem.Allocator, filename: []const u8, create_flag: bool) !Snippet {
+        const file = try std.fs.cwd().openFile(filename, .{});
+        defer file.close();
+
+        var buf_reader = std.io.bufferedReader(file.reader());
+        var in_stream = buf_reader.reader();
+
+        var parsed_lines = std.ArrayList([]const u8).init(allocator);
+        defer parsed_lines.deinit();
+
+        var buf: [1024]u8 = undefined; //1024 bytes or 1kb
+
+        while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+            const serialized_line = try parseLine(allocator, line);
+
+            try parsed_lines.append(serialized_line);
+        }
+
+        const last_line = parsed_lines.pop();
+
+        const new_slice = try allocator.alloc(u8, last_line.len - 1);
+
+        @memcpy(new_slice, last_line[0 .. last_line.len - 1]);
+
+        defer allocator.free(last_line);
+
+        try parsed_lines.append(new_slice);
+
+        return Snippet{
+            .title = "VSCode Code Snippet",
+            .prefix = "prefix_insertSnippet",
+            .body = try parsed_lines.toOwnedSlice(),
+            .description = "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.",
+            .create_flag = create_flag,
+        };
     }
 
     pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) ![]const u8 {
@@ -266,33 +305,53 @@ pub const Snippet = struct {
     }
 };
 
-test "Test Snippet Parse From Direct C String" {
-    const mock_selection =
-        \\hello
-        \\world
-        \\\\\\\\
-        \\\n\n\n\n\n
-        \\nextline nextline 
-        \\oneline \n\n    aaaa\\\\ \ttttt XXXX
-        \\oneline \n\n    aaaa\\\\ \ttttt XXXX
-        \\          \!!!!!,,,,,
-        \\
-        \\
-    ;
-
+test "Snippet File Convert" {
     const allocator = std.testing.allocator;
+    //  Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/testfile.txt
 
-    const cString: [*c]const u8 = "Your test string here";
-    const cStringSlice: []const u8 = std.mem.span(cString);
+    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/testfile.txt";
 
-    const split_s = try convertStringToStringSlice(allocator, cStringSlice);
-    defer allocator.free(split_s);
+    const snippet = try Snippet.convertFileToSnippet(allocator, file_name, true);
+    const format_to_str = try std.fmt.allocPrint(allocator, "{s}", .{snippet});
 
-    acceptStringSlicesConst(split_s);
+    defer {
+        for (snippet.body) |line| {
+            allocator.free(line);
+        }
+        allocator.free(snippet.body);
+        allocator.free(format_to_str);
+    }
 
-    try Snippet.createFromSingleString(allocator, mock_selection, true);
-    try Snippet.createFromSingleString(allocator, cString, true);
+    std.debug.print("Direct Convert\n{s}\n", .{format_to_str});
 }
+
+// test "Test Snippet Parse From Direct C String" {
+//     const mock_selection =
+//         \\hello
+//         \\world
+//         \\\\\\\\
+//         \\\n\n\n\n\n
+//         \\nextline nextline
+//         \\oneline \n\n    aaaa\\\\ \ttttt XXXX
+//         \\oneline \n\n    aaaa\\\\ \ttttt XXXX
+//         \\          \!!!!!,,,,,
+//         \\
+//         \\
+//     ;
+
+//     const allocator = std.testing.allocator;
+
+//     const cString: [*c]const u8 = "Your test string here";
+//     const cStringSlice: []const u8 = std.mem.span(cString);
+
+//     const split_s = try convertStringToStringSlice(allocator, cStringSlice);
+//     defer allocator.free(split_s);
+
+//     acceptStringSlicesConst(split_s);
+
+//     try Snippet.createFromSingleString(allocator, mock_selection, true);
+//     try Snippet.createFromSingleString(allocator, cString, true);
+// }
 
 // ============== STRING CONVERSION UTILS ==============
 

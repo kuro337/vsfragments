@@ -21,11 +21,13 @@ const writeSnippetToFileAtByteOffset = @import("modify_snippet").writeSnippetToF
 const createSnippetsFileAndWrite = @import("create_file").createSnippetsFileAndWrite;
 const handleInputFileNotExists = @import("create_file").handleInputFileNotExists;
 
-const printFragmentBuffered = @import("write_results").printFragmentBuffered;
+const printInlineFragmentBuffered = @import("write_results").printInlineFragmentBuffered;
 const printFragmentBufferedFileIO = @import("write_results").printFragmentBufferedFileIO;
 
 const printCLIFlags = @import("cli_parser").printCLIFlags;
 const getFragmentFlags = @import("cli_parser").getFragmentFlags;
+
+// NOTE: use Snippet.convertFileToSnippet() everywhere - MOST efficient
 
 pub fn main() !void {
     const allocator = std.heap.c_allocator;
@@ -52,7 +54,7 @@ pub fn main() !void {
                 var transformed_snippet = try transformTextToFragment(allocator, split_lines);
                 transformed_snippet.setMetadata(fragment_flags.title, fragment_flags.prefix, fragment_flags.description);
 
-                _ = try printFragmentBuffered(transformed_snippet);
+                _ = try printInlineFragmentBuffered(transformed_snippet);
             }
         },
     }

@@ -3,7 +3,7 @@ const std = @import("std");
 const Snippet = @import("snippet").Snippet;
 const constants = @import("constants");
 
-pub fn printFragmentBuffered(snippet: Snippet) !void {
+pub fn printInlineFragmentBuffered(snippet: Snippet) !void {
     const out = std.io.getStdOut();
     var buf = std.io.bufferedWriter(out.writer());
     var w = buf.writer();
@@ -34,7 +34,7 @@ pub fn printFragmentBuffered(snippet: Snippet) !void {
 
     try w.print("{s}\n", .{snippet});
 
-    try w.print("{s}{s}\n{s}\n", .{ constants.stdout_section_limiter, constants.stdout_section_limiter, constants.success_fragment_usage });
+    try w.print("{s}{s}\n{s}\n\n{s}\n", .{ constants.stdout_section_limiter, constants.stdout_section_limiter, constants.success_fragment_usage, constants.inline_success_fragment_usage });
     try buf.flush();
 }
 
