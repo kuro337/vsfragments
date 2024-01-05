@@ -23,6 +23,7 @@ pub const Flags = struct {
     description: ?[]const u8 = null,
     prefix: ?[]const u8 = null,
     confirmation: bool = false,
+    force: bool = false,
 
     pub fn evalCmds(self: Flags) FlagEval {
 

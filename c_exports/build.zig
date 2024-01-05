@@ -78,6 +78,8 @@ pub fn build(b: *std.Build) !void {
                 .optimize = config.optimize,
             });
 
+            lib.linkLibC();
+
             addCommonModules(b, lib);
 
             const target_output_clib = b.addInstallArtifact(lib, .{

@@ -58,6 +58,7 @@ test "Test Reading File and Transforming to Snippet" {
         .body = &expected_transformed_lines,
         .description = "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.",
         .create_flag = false,
+        .force = false,
     };
 
     const allocator = std.testing.allocator;
@@ -159,9 +160,10 @@ test "Snippet File Parsing C NAPI Tests" {
     const prefix = "zigmetadatatest";
     const description = "Custom Description for Metadata Export";
 
-    var snippet = try Snippet.transformFileToSnippet(allocator, INPUT_FILE_PATH_METADATA);
+    //var snippet = try Snippet.transformFileToSnippet(allocator, INPUT_FILE_PATH_METADATA);
+    var snippet = try Snippet.convertFileToSnippet(allocator, INPUT_FILE_PATH_METADATA, false);
 
-    snippet.setMetadata(title, prefix, description);
+    snippet.setMetadata(title, prefix, description, false, false);
 
     // Returning a C String and Zig String Directly from the Struct
     const formatted_c_str = try std.fmt.allocPrintZ(allocator, "{s}", .{snippet});

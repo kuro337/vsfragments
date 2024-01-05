@@ -87,6 +87,7 @@ pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
         \\-d, --desc        <string>    Optional description for snippet.
         \\-p, --print                   Flag for printing output.
         \\-y, --y                       Confirmation Flag for creating the Snippets File.
+        \\-x, --force                   Force Flag for Appending to Invalid Snippets Files.
         \\ 
     );
 
@@ -115,5 +116,6 @@ pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
         .help = if (res.args.help == 1) true else false,
         .print = if (res.args.print == 1) true else false,
         .confirmation = if (res.args.y == 1) true else false,
+        .force = if (res.args.force == 1) true else false,
     };
 }

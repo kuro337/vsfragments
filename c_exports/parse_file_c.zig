@@ -5,21 +5,22 @@ const Snippet = @import("snippet").Snippet;
 
 const checkFileExists = @import("modify_snippet").checkFileExists;
 const handleInputFileNotExists = @import("create_file").handleInputFileNotExists;
-const transformFileToFragment = @import("json_parser").transformFileToFragment;
 const printFragmentBufferedFileIO = @import("write_results").printFragmentBufferedFileIO;
 
 // NOTE: use Snippet.convertFileToSnippet() everywhere - MOST efficient
 
 // ====================== CORE_NAPI_EXPORTS ======================
 
-export fn parseFileGetSnippet(file_path: [*c]const u8, print_out: bool) [*:0]const u8 {
+export fn parseFileGetSnippet(file_path: [*c]const u8, new_snippet_file: bool, print_out: bool) [*:0]const u8 {
     const allocator = std.heap.c_allocator;
 
     const zig_file_path = std.mem.span(file_path);
 
-    const snippet = parseFileReturnSnippet(allocator, zig_file_path, print_out) catch |err| {
+    var snippet = parseFileReturnSnippet(allocator, zig_file_path, print_out) catch |err| {
         std.debug.panic("Failed to Parse Text from File {s}\nErr:{}", .{ zig_file_path, err });
     };
+
+    snippet.create_flag = new_snippet_file;
 
     const format_to_str = std.fmt.allocPrintZ(allocator, "{s}", .{snippet}) catch |err| {
         std.debug.panic("Error formatting snippet: {}\n", .{err});
@@ -59,9 +60,7 @@ export fn createSnippetWithMetadata(file_path: [*:0]const u8, title: [*:0]const 
 
     // so it adds a surrounding { }
 
-    if (new_snippet_file == true) snippet.create_flag = true;
-
-    snippet.setMetadata(zig_title, zig_prefix, zig_description);
+    snippet.setMetadata(zig_title, zig_prefix, zig_description, new_snippet_file, false);
 
     const format_to_str = std.fmt.allocPrintZ(allocator, "{s}", .{snippet}) catch |err| {
         std.debug.panic("Error formatting snippet: {}\n", .{err});
@@ -89,7 +88,7 @@ pub fn parseFileReturnSnippet(allocator: std.mem.Allocator, input_file_path: []c
 
     // 2. Print Snippet
 
-    const transformed_snippet = try transformFileToFragment(allocator, input_file_path, false);
+    const transformed_snippet = try Snippet.convertFileToSnippet(allocator, input_file_path, false);
 
     if (print_stdout == true) try printFragmentBufferedFileIO(transformed_snippet);
 

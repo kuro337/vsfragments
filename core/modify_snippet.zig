@@ -10,7 +10,6 @@ pub fn checkFileExists(file_path: []const u8) !bool {
         return true;
     } else |err| switch (err) {
         error.FileNotFound => {
-            // print("\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n", .{});
             return false;
         },
         else => |leftover_err| return leftover_err,

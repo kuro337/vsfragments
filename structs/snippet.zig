@@ -7,6 +7,7 @@ pub const Snippet = struct {
     body: [][]const u8,
     description: []const u8,
     create_flag: bool,
+    force: bool,
 
     pub fn format(
         snippet: Snippet,
@@ -32,6 +33,8 @@ pub const Snippet = struct {
         title: ?[]const u8,
         prefix: ?[]const u8,
         description: ?[]const u8,
+        create_flag: ?bool,
+        force: ?bool,
     ) void {
         if (title) |newTitle| {
             self.title = newTitle;
@@ -42,11 +45,17 @@ pub const Snippet = struct {
         if (description) |newDescription| {
             self.description = newDescription;
         }
+        if (create_flag) |create| {
+            self.create_flag = create;
+        }
+        if (force) |f| {
+            self.force = f;
+        }
     }
 
     pub fn destroy(self: *Snippet, allocator: std.mem.Allocator) void {
         for (self.body) |line| {
-            std.testing.allocator.free(line);
+            allocator.free(line);
         }
 
         allocator.free(self.body);
@@ -80,6 +89,83 @@ pub const Snippet = struct {
 
         const snippet = try Snippet.createFromLines(allocator, file_lines, false);
         return snippet;
+    }
+
+    // append to existing snippets file
+    // if file exists and they pass the -y flag we just insert into it by continuing below flow
+
+    pub fn appendSnippet(self: *Snippet, allocator: std.mem.Allocator, output_file_path: []const u8, print_out: bool) !void {
+        const file = try std.fs.openFileAbsolute(output_file_path, .{ .mode = .read_write });
+
+        defer file.close();
+
+        var snippet_insertion_pos: usize = 0;
+
+        // Determine the file size
+        const fileSize = try file.getEndPos();
+
+        // Get Insertion Pos if File not Empty
+        if (fileSize > 0) {
+
+            // Allocate a buffer to hold the file content
+            const buffer = try allocator.alloc(u8, fileSize);
+
+            defer allocator.free(buffer);
+
+            // Read the file content into the buffer
+            _ = try file.readAll(buffer);
+            const snippet_file_valid = try std.json.validate(allocator, buffer);
+
+            if (snippet_file_valid == false and self.force == false) {
+                std.debug.print("Malformed JSON Detected in Existing Snippet File. Use the --force flag to append to a potentially malformed Snippets file.\n", .{});
+                return;
+            }
+
+            snippet_insertion_pos = findSecondLastBracePosition(buffer);
+        }
+
+        if (snippet_insertion_pos == 0) {
+            _ = try file.write("{\n");
+        } else {
+            try file.seekTo(snippet_insertion_pos + 1);
+            _ = try file.write(",\n");
+        }
+
+        const old_create_flag = self.create_flag;
+        self.create_flag = false;
+
+        // Write the snippet to the file
+        const formatOptions = std.fmt.FormatOptions{};
+
+        // Write the snippet to the file
+        self.format("", formatOptions, file.writer()) catch unreachable;
+
+        _ = try file.write("}");
+        self.create_flag = old_create_flag;
+
+        if (print_out) print("\nSuccessfully Updated Snippets File \x1b[92m{s}\x1b[0m\n", .{output_file_path});
+    }
+
+    // only writes if -y flag passed
+    pub fn writeSnippet(self: *Snippet, output_file_path: []const u8, print_out: bool) !void {
+        if (self.create_flag == false) {
+            print("{s}", .{output_file_not_exists});
+            print("\n{s}\n", .{msg_outputfile_missing});
+            return;
+        }
+
+        const file = std.fs.createFileAbsolute(output_file_path, .{}) catch |err| {
+            std.debug.panic("Failed to Create new Snippets File:\nError:\x1b[31m{}\x1b[0m\n\n", .{err});
+        };
+
+        defer file.close();
+
+        const formatOptions = std.fmt.FormatOptions{};
+
+        // Write the snippet to the file
+        try self.format("", formatOptions, file.writer());
+
+        if (print_out) print("\x1b[92mSuccessfully Created Snippets File \x1b[0m\x1b[97m{s}\x1b[0m\n", .{output_file_path});
     }
 
     // read file and pass lines directly to parseLine
@@ -117,6 +203,7 @@ pub const Snippet = struct {
             .body = try parsed_lines.toOwnedSlice(),
             .description = "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.",
             .create_flag = create_flag,
+            .force = false,
         };
     }
 
@@ -216,6 +303,7 @@ pub const Snippet = struct {
             .body = try parsedLines.toOwnedSlice(),
             .description = "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.",
             .create_flag = write_flag,
+            .force = false,
         };
     }
 
@@ -239,77 +327,165 @@ pub const Snippet = struct {
 
         return snippet;
     }
+};
 
-    pub fn createFromLinesNonANSI(allocator: std.mem.Allocator, lines: []const []const u8, write_flag: bool) !Snippet {
-        var parsedLines = std.ArrayList([]const u8).init(allocator);
+// =================== EXTENSIONS =====================
+// EXTENSIONS - Converting Multiple Files
 
-        const totalLines = lines.len;
+// test "Large Snippet File from All Files in Dir" {}
 
-        for (lines, 0..) |line, i| {
-            var escapedLineBuilder = std.ArrayList(u8).init(allocator);
-            defer escapedLineBuilder.deinit();
+fn concatStrings(allocator: std.mem.Allocator, one: []const u8, two: []const u8) ![]u8 {
+    if (one[one.len - 1] != '/') {
+        const new_len = one.len + two.len + 1;
+        const concat = try allocator.alloc(u8, new_len);
 
-            // Add opening quote
-            try escapedLineBuilder.append('\"');
+        return std.fmt.bufPrint(concat, "{s}/{s}", .{ one, two });
+    } else {
+        const new_len = one.len + two.len;
 
-            var spaceCount: usize = 0;
-            for (line) |char| {
-                switch (char) {
-                    ' ' => {
-                        spaceCount += 1;
-                        if (spaceCount == 4) {
-                            try escapedLineBuilder.append('\\');
-                            try escapedLineBuilder.append('t');
-                            spaceCount = 0;
-                        }
-                    },
-                    '\\' => {
-                        try escapedLineBuilder.append('\\');
-                        try escapedLineBuilder.append('\\');
-                    },
-                    '$', '"' => {
-                        try escapedLineBuilder.append('\\');
-                        try escapedLineBuilder.append(char);
-                    },
-                    else => {
-                        if (spaceCount > 0 and spaceCount < 4) {
-                            while (spaceCount > 0) {
-                                try escapedLineBuilder.append(' ');
-                                spaceCount -= 1;
-                            }
-                        }
-                        try escapedLineBuilder.append(char);
-                    },
-                }
+        const concat = try allocator.alloc(u8, new_len);
+
+        return try std.fmt.bufPrint(concat, "{s}{s}", .{ one, two });
+    }
+}
+
+fn checkIfPathExists(path: []const u8) !bool {
+    _ = std.fs.cwd().statFile(path) catch |err| {
+        std.debug.print("No File Found at Path:{}\n", .{err});
+
+        if (err == error.FileNotFound) return false;
+        return err;
+    };
+
+    std.debug.print("Output directory exists:{s}\n", .{path});
+
+    return true;
+}
+
+fn isBinaryFile(fileName: []const u8) bool {
+    // Add more extensions if needed
+    // need to handle empty extensions for binaries
+    const binaryExtensions = &[_][]const u8{ ".o", ".bin", ".exe", ".dll" };
+    for (binaryExtensions) |ext| {
+        if (std.mem.endsWith(u8, fileName, ext)) {
+            return true;
+        }
+    }
+    return false;
+}
+test "Reading all Files from a Directory and Converting to a Single Snippet File" {
+    const allocator = std.testing.allocator;
+
+    const input_file_dir = "/Users/kuro/Documents/Code/Zig/FileIO/file";
+    const output_dir_path = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup";
+
+    if (!try checkIfPathExists(output_dir_path)) {
+        _ = try std.fs.cwd().makeDir(output_dir_path);
+    }
+
+    var dir = try std.fs.cwd().openDir(input_file_dir, .{ .iterate = true });
+    defer dir.close();
+
+    const combined_file_path = try concatStrings(allocator, output_dir_path, "backup.json");
+    defer allocator.free(combined_file_path);
+
+    var it = dir.iterate();
+
+    var i: usize = 0;
+    while (try it.next()) |entry| {
+        if (entry.kind == std.fs.File.Kind.file) {
+            if (isBinaryFile(entry.name)) {
+                std.debug.print("Non UTF-8 File: {s}\n", .{entry.name});
+                continue;
             }
 
-            // Add closing quote
-            try escapedLineBuilder.append('\"');
+            const input_file_full_path = try concatStrings(allocator, input_file_dir, entry.name);
+            defer allocator.free(input_file_full_path);
+            // std.debug.print("File: {s}\n", .{input_file_full_path});
 
-            // Add comma except for the last line
-            if (i < totalLines - 1) {
-                try escapedLineBuilder.append(',');
+            var snippet = try Snippet.convertFileToSnippet(allocator, input_file_full_path, true);
+
+            defer snippet.destroy(allocator);
+
+            if (i == 0) {
+                try snippet.writeSnippet(combined_file_path, false);
+            } else {
+                try snippet.appendSnippet(allocator, combined_file_path, false);
             }
 
-            const finalEscapedLine = try escapedLineBuilder.toOwnedSlice();
-            try parsedLines.append(finalEscapedLine);
+            i += 1;
+        } else {
+            // std.debug.print("Not a File: {s}-{}\n", .{ entry.name, entry.kind });
+        }
+    }
+
+    try std.fs.cwd().deleteFile(combined_file_path);
+
+    try std.testing.expect(true);
+}
+
+fn listFilesInDir(dirPath: []const u8) !void {
+    var dir = try std.fs.cwd().openDir(dirPath, .{ .iterate = true });
+    defer dir.close();
+
+    var it = dir.iterate();
+    while (try it.next()) |entry| {
+        std.debug.print("File: {s}-{}\n", .{ entry.name, entry.kind });
+    }
+}
+
+pub const output_file_not_exists = "\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n\x1b[31mOutput Path Snippets File does not exist.\x1b[0m\n";
+pub const msg_outputfile_missing = "\x1b[37mTo create a new file at the specificied location use the \x1b[1m-y\x1b[0m flag with \x1b[1m-o\x1b[0m.\x1b[0m\n\n\x1b[97m./vsfragment -f djikstras.md -o /users/code/dsa.code-snippets -y\x1b[0m";
+
+// =================== HELPERS =====================
+// HELPERS - Find second last Brace Position
+
+fn findSecondLastBracePosition(buffer: []const u8) usize {
+    var braceCount: usize = 0;
+    var isInComment = false;
+
+    var index = buffer.len - 1;
+    while (index > 0) {
+        const char = buffer[index];
+
+        // Skip the current line if it's a comment.
+        if (isInComment) {
+            if (char == '\n') {
+                isInComment = false;
+            }
+            index -= 1;
+            continue;
         }
 
-        return Snippet{
-            .title = "Go HTTP2 Server Snippet",
-            .prefix = "gohttpserver",
-            .body = try parsedLines.toOwnedSlice(),
-            .description = "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.",
-            .create_flag = write_flag,
-        };
+        // Check for start of a single line comment.
+        if (index > 0 and buffer[index - 1] == '/' and char == '/') {
+            isInComment = true;
+            index -= 2; // Skip the "//"
+            continue;
+        }
+
+        // Count closing braces.
+        if (char == '}') {
+            braceCount += 1;
+            if (braceCount == 2) {
+                return index;
+            }
+        }
+
+        index -= 1;
     }
-};
+
+    // Return 0 if less than two closing braces found.
+    return 0;
+}
+
+// =================== SNIPPET TESTS =====================
 
 test "Snippet File Convert" {
     const allocator = std.testing.allocator;
     //  Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/testfile.txt
 
-    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/testfile.txt";
+    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
 
     const snippet = try Snippet.convertFileToSnippet(allocator, file_name, true);
     const format_to_str = try std.fmt.allocPrint(allocator, "{s}", .{snippet});
@@ -322,7 +498,47 @@ test "Snippet File Convert" {
         allocator.free(format_to_str);
     }
 
-    std.debug.print("Direct Convert\n{s}\n", .{format_to_str});
+    // std.debug.print("Direct Convert\n{s}\n", .{format_to_str});
+}
+
+test "Snippet Direct Write File Convert" {
+    const allocator = std.testing.allocator;
+    //  Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/testfile.txt
+
+    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
+    const new_file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/snippetcreate.code-snippets";
+
+    var snippet = try Snippet.convertFileToSnippet(allocator, file_name, true);
+
+    try snippet.writeSnippet(new_file_name, false);
+
+    defer {
+        for (snippet.body) |line| {
+            allocator.free(line);
+        }
+        allocator.free(snippet.body);
+    }
+}
+
+test "Snippet Append Fragment to File" {
+    const allocator = std.testing.allocator;
+    //  Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/testfile.txt
+
+    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
+    const existing_file = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/snippetcreate.code-snippets";
+
+    var snippet = try Snippet.convertFileToSnippet(allocator, file_name, false);
+
+    try snippet.appendSnippet(allocator, existing_file, false);
+
+    defer {
+        for (snippet.body) |line| {
+            allocator.free(line);
+        }
+        allocator.free(snippet.body);
+    }
+
+    try std.fs.cwd().deleteFile(existing_file);
 }
 
 // test "Test Snippet Parse From Direct C String" {
