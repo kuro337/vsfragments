@@ -373,6 +373,10 @@ fn isBinaryFile(fileName: []const u8) bool {
     }
     return false;
 }
+
+// IMPORTANT - MAKE SURE WE CHECK FILE NOT BINARY AND VALID UTF8
+// use std.unicode utilities to check
+
 test "Reading all Files from a Directory and Converting to a Single Snippet File" {
     const allocator = std.testing.allocator;
 
