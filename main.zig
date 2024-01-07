@@ -27,8 +27,6 @@ const printFragmentBufferedFileIO = @import("write_results").printFragmentBuffer
 const printCLIFlags = @import("cli_parser").printCLIFlags;
 const getFragmentFlags = @import("cli_parser").getFragmentFlags;
 
-// NOTE: use Snippet.convertFileToSnippet() everywhere - MOST efficient
-
 pub fn main() !void {
     const allocator = std.heap.c_allocator;
 
@@ -62,7 +60,6 @@ pub fn main() !void {
 }
 
 // ===================================================
-//                     HELPERS
 // ===================================================
 
 // if only input file passed
