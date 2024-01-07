@@ -384,29 +384,32 @@ install success
 <br/>
 
 ```bash
-Build Summary: 21/21 steps succeeded; 52/52 tests passed
-test success
-├─ run test 6 passed 142ms MaxRSS:5M
-│  └─ zig test Debug native success 3s MaxRSS:281M
-├─ run test 4 passed 168ms MaxRSS:7M
-│  └─ zig test Debug native success 2s MaxRSS:250M
-├─ run test 2 passed 73ms MaxRSS:1M
-│  └─ zig test Debug native success 3s MaxRSS:237M
-├─ run test 12 passed 95ms MaxRSS:1M
-│  └─ zig test Debug native success 2s MaxRSS:238M
-├─ run test 2 passed 131ms MaxRSS:2M
-│  └─ zig test Debug native success 2s MaxRSS:260M
-├─ run test 6 passed 107ms MaxRSS:5M
-│  └─ zig test Debug aarch64-macos success 3s MaxRSS:281M
-├─ run test 4 passed 204ms MaxRSS:7M
-│  └─ zig test Debug aarch64-macos success 2s MaxRSS:250M
-├─ run test 2 passed 41ms MaxRSS:1M
-│  └─ zig test Debug aarch64-macos success 3s MaxRSS:247M
-├─ run test 12 passed 58ms MaxRSS:1M
-│  └─ zig test Debug aarch64-macos success 2s MaxRSS:243M
-└─ run test 2 passed 237ms MaxRSS:2M
-   └─ zig test Debug aarch64-macos success 2s MaxRSS:265M
 
+Build Summary: 23/23 steps succeeded; 40/40 tests passed
+test success
+├─ run test 6 passed 174ms MaxRSS:5M
+│  └─ zig test Debug native success 4s MaxRSS:333M
+├─ run test 4 passed 171ms MaxRSS:2M
+│  └─ zig test Debug native success 3s MaxRSS:293M
+├─ run test 13 passed 61ms MaxRSS:1M
+│  └─ zig test Debug native success 3s MaxRSS:295M
+├─ run test 5 passed 97ms MaxRSS:2M
+│  └─ zig test Debug native success 4s MaxRSS:325M
+├─ run test 2 passed 61ms MaxRSS:1M
+│  └─ zig test Debug native success 4s MaxRSS:290M
+├─ run test 1 passed 72ms MaxRSS:2M
+│  └─ zig test Debug native success 4s MaxRSS:296M
+├─ run test 1 passed 38ms MaxRSS:2M
+│  └─ zig test Debug native success 4s MaxRSS:291M
+├─ run test 1 passed 135ms MaxRSS:2M
+│  └─ zig test Debug native success 3s MaxRSS:290M
+├─ run test 2 passed 106ms MaxRSS:4M
+│  └─ zig test Debug native success 4s MaxRSS:301M
+├─ run test 4 passed 143ms MaxRSS:7M
+│  └─ zig test Debug native success 4s MaxRSS:304M
+└─ run test 1 passed 97ms MaxRSS:2M
+   └─ zig test Debug native success 3s MaxRSS:288M
+   
 ```
 
 <br/>

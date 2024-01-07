@@ -5,9 +5,11 @@ test "Create a String" {
 
     const split_s = try convertStringToStringSlice(std.testing.allocator, s);
     defer std.testing.allocator.free(split_s);
-    acceptStringSlices(split_s);
-    acceptStringSlicesConst(split_s);
 
+    acceptStringSlices(split_s);
+    _ = try std.testing.expect(true);
+
+    acceptStringSlicesConst(split_s);
     _ = try std.testing.expect(true);
 }
 
@@ -26,13 +28,17 @@ pub fn convertStringToStringSlice(allocator: std.mem.Allocator, code_str: []cons
 
 pub fn acceptStringSlicesConst(str_slices: []const []const u8) void {
     for (str_slices) |st| {
-        std.debug.print("{s}", .{st});
+        _ = st; // autofix
+
+        //     std.debug.print("{s}", .{st});
     }
 }
 
 pub fn acceptStringSlices(str_slices: [][]const u8) void {
     for (str_slices) |st| {
-        std.debug.print("{s}", .{st});
+        _ = st; // autofix
+
+        //        std.debug.print("{s}", .{st});
     }
 }
 

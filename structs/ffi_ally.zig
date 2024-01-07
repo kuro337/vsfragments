@@ -22,24 +22,3 @@ pub const Ally = struct {
     }
 };
 
-// pub const Ally = struct {
-//     arena: std.heap.ArenaAllocator,
-//     allocator: std.mem.Allocator,
-//     data: []u8,
-
-//     // Constructor
-//     pub fn create() Ally {
-//         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-//         const allocator = arena.allocator();
-
-//         return Ally{
-//             .arena = arena,
-//             .allocator = allocator,
-//             .data = &[_]u8{},
-//         };
-//     }
-
-//     // Set data directly
-//     pub fn setData(self: *Ally, input: []const u8) !void {
-//         self.data = try self.allocator.dupe(u8, input);
-//     }

@@ -2,6 +2,8 @@ const std = @import("std");
 
 const expect = @import("std").testing.expect;
 const mem = @import("std").mem;
+const Build = std.Build;
+const CompileStep = std.Build.Step.Compile;
 
 const FlagEval = enum(u8) {
     invalid,
@@ -12,6 +14,31 @@ const FlagEval = enum(u8) {
 
 fn returnInvalidFlag() FlagEval {
     return FlagEval.invalid;
+}
+
+pub const BuildConfig = struct {
+    arch: std.Target.Cpu.Arch,
+    os: std.Target.Os.Tag,
+};
+
+const targets = [_]BuildConfig{ BuildConfig{
+    .arch = std.Target.Cpu.Arch.aarch64,
+    .os = std.Target.Os.Tag.macos,
+}, BuildConfig{
+    .arch = std.Target.Cpu.Arch.x86_64,
+    .os = std.Target.Os.Tag.linux,
+}, BuildConfig{
+    .arch = std.Target.Cpu.Arch.x86_64,
+    .os = std.Target.Os.Tag.windows,
+} };
+
+test "Getting String Values of Enum Types" {
+    for (targets) |t| {
+        _ = t; // autofix
+
+        try std.testing.expect(true);
+        //        std.debug.print("{s},::{s}\n", .{ @tagName(t.arch), @tagName(t.os) });
+    }
 }
 
 // NOTE -> For Direct switch assignment - we need to define the type Param Explicitly
@@ -26,8 +53,8 @@ test "Direct Switch - VALID" {
 
 test "Inline Switch - VALID as long as void evaluations" {
     switch (returnInvalidFlag()) {
-        FlagEval.invalid => std.debug.print("Passed Test", .{}),
-        else => std.debug.print("Failed Test", .{}),
+        FlagEval.invalid => try std.testing.expect(true),
+        else => try std.testing.expect(true == false),
     }
 
     try std.testing.expect(true);

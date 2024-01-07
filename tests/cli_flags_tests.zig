@@ -12,7 +12,3 @@ test "Test Zig Clap Module Usage" {
 test "Test Print" {
     try std.testing.expect(true);
 }
-
-// zig test file.zig
-
-//  const clap_mod = b.addModule("clap", .{ .source_file = .{ .path = "../zig-clap/clap.zig" } });

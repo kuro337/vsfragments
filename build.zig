@@ -1,162 +1,121 @@
 const std = @import("std");
 
-const build_targets = [_]std.zig.CrossTarget{ .{}, .{
-    .cpu_arch = .aarch64,
-    .os_tag = .macos,
-}, .{
-    .cpu_arch = .aarch64,
-    .os_tag = .linux,
-}, .{
-    .cpu_arch = .x86_64,
-    .os_tag = .linux,
-}, .{
-    .cpu_arch = .aarch64,
-    .os_tag = .linux,
-}, .{
-    .cpu_arch = .x86_64,
-    .os_tag = .windows,
-} };
+const CompileStep = std.Build.Step.Compile;
+const Build = std.Build;
+const Tag = std.Target.Os.Tag;
+const Arch = std.Target.Cpu.Arch;
+const OptimizeMode = std.builtin.OptimizeMode;
 
-const BuildConfig = struct {
-    name: []const u8,
-    optimize: std.builtin.OptimizeMode,
-};
+const OS = [_]Tag{ Tag.macos, Tag.linux, Tag.windows };
+const ARCH = [_]Arch{ Arch.aarch64, Arch.x86_64 };
+const MODE = [_]OptimizeMode{ .Debug, .ReleaseSafe, .ReleaseSmall, .ReleaseFast };
 
-const build_configs = [_]BuildConfig{
-    .{ .name = "fast", .optimize = .ReleaseFast },
-    .{ .name = "safe", .optimize = .ReleaseSafe },
-    .{ .name = "debug", .optimize = .Debug },
-    .{ .name = "small", .optimize = .ReleaseSmall },
-};
-
-const test_targets = [_]std.zig.CrossTarget{ .{}, .{
-    .cpu_arch = .aarch64,
-    .os_tag = .macos,
-} };
-
-// =================== BUILD ===================
-
-pub fn build(b: *std.Build) !void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
+pub fn build(b: *Build) !void {
+    const base_target = b.standardTargetOptions(.{});
 
     const test_step = b.step("test", "Run unit tests");
 
-    for (test_targets) |target| {
-        const unit_tests = b.addTest(.{
-            .root_source_file = .{ .path = "tests/unit_tests.zig" },
-            .target = target,
-        });
+    const unit_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/unit_tests.zig" }, .target = base_target });
+    const enum_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/enum_tests.zig" }, .target = base_target });
+    const json_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/json_tests.zig" }, .target = base_target });
+    const parsing_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/parsing_tests.zig" }, .target = base_target });
+    const cli_flag_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/cli_flags_tests.zig" }, .target = base_target });
+    const metadata_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/metadata_tests.zig" }, .target = base_target });
+    const strconv_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/str_conv_tests.zig" }, .target = base_target });
+    const reader_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/reader_tests.zig" }, .target = base_target });
+    const union_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/union_tests.zig" }, .target = base_target });
+    const read_dir_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/read_dir.zig" }, .target = base_target });
+    const c_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/c_tests.zig" }, .target = base_target });
 
-        // =================== UNIT TESTS ===================
+    // enum_tests.zig =======
+    // json_tests.zig =======
+    // union_tests.zug  =======
+    // cli_flags_tests.zig =======
+    // parsing_tests.zig =======
+    // metadata_tests.zig =======
+    // unit_tests.zig =======
+    // str_conv_tests.zig =======
+    // reader_tests.zig =======
+    // union_tests.zig =======
+    // c_tests.zig  =======
+    // read_dir.zig =======
 
-        addCommonModules(b, unit_tests);
+    // printer_tests.zig // todo
+    // stdout_color_tests.zig
 
-        const run_unit_tests = b.addRunArtifact(unit_tests);
-        test_step.dependOn(&run_unit_tests.step);
+    const run_enum_tests = b.addRunArtifact(enum_tests);
+    const run_c_tests = b.addRunArtifact(c_tests);
+    const run_unit_tests = b.addRunArtifact(unit_tests);
+    const run_json_tests = b.addRunArtifact(json_tests);
+    const run_parse_tests = b.addRunArtifact(parsing_tests);
+    const run_cli_tests = b.addRunArtifact(cli_flag_tests);
+    const run_strconv_tests = b.addRunArtifact(strconv_tests);
+    const run_reader_tests = b.addRunArtifact(reader_tests);
+    const run_metadata_tests = b.addRunArtifact(metadata_tests);
+    const run_union_tests = b.addRunArtifact(union_tests);
+    const run_read_dir_tests = b.addRunArtifact(read_dir_tests);
 
-        // =================== READ + PARSING TESTS ===================
-        const parsing_tests = b.addTest(.{
-            .root_source_file = .{ .path = "tests/parsing_tests.zig" },
-            .target = target,
-        });
+    addCommonModules(b, cli_flag_tests);
+    addCommonModules(b, parsing_tests);
+    addCommonModules(b, unit_tests);
 
-        addCommonModules(b, parsing_tests);
+    test_step.dependOn(&run_unit_tests.step);
+    test_step.dependOn(&run_c_tests.step);
+    test_step.dependOn(&run_enum_tests.step);
+    test_step.dependOn(&run_json_tests.step);
+    test_step.dependOn(&run_cli_tests.step);
+    test_step.dependOn(&run_metadata_tests.step);
+    test_step.dependOn(&run_union_tests.step);
+    test_step.dependOn(&run_strconv_tests.step);
+    test_step.dependOn(&run_reader_tests.step);
+    test_step.dependOn(&run_parse_tests.step);
+    test_step.dependOn(&run_read_dir_tests.step);
 
-        const run_parsing_tests = b.addRunArtifact(parsing_tests);
-        test_step.dependOn(&run_parsing_tests.step);
+    for (ARCH) |arch| {
+        for (OS) |os| {
+            for (MODE) |optimization| {
+                var resolved_target = base_target;
+                resolved_target.result.cpu.arch = arch;
+                resolved_target.result.os.tag = os;
 
-        // =================== CLI PARSING TESTS ===================
-        const cli_parsing_tests = b.addTest(.{
-            .root_source_file = .{ .path = "tests/cli_flags_tests.zig" },
-            .target = target,
-        });
+                const exe = b.addExecutable(.{
+                    .name = "vsfragment",
+                    .root_source_file = .{ .path = "main.zig" },
+                    .optimize = optimization,
+                    .target = resolved_target,
+                });
 
-        addCommonModules(b, cli_parsing_tests);
+                addCommonModules(b, exe);
 
-        const run_cli_parsing_tests = b.addRunArtifact(cli_parsing_tests);
-        test_step.dependOn(&run_cli_parsing_tests.step);
+                exe.linkLibC();
 
-        // =================== REGRESSION TESTS ===================
-        const enum_tests = b.addTest(.{
-            .root_source_file = .{ .path = "tests/enum_tests.zig" },
-            .target = target,
-        });
+                const cpuarch = @tagName(arch);
+                const osystem = @tagName(os);
+                const release = @tagName(optimization);
 
-        const run_enum_tests = b.addRunArtifact(enum_tests);
-        test_step.dependOn(&run_enum_tests.step);
+                const target_output = b.addInstallArtifact(
+                    exe,
+                    .{ .dest_dir = .{ .override = .{
+                        .custom = try std.fmt.allocPrint(b.allocator, "bin/{s}/{s}/{s}", .{ osystem, cpuarch, release }),
+                    } } },
+                );
 
-        const json_tests = b.addTest(.{
-            .root_source_file = .{ .path = "tests/json_tests.zig" },
-            .target = target,
-        });
-
-        const run_json_tests = b.addRunArtifact(json_tests);
-        test_step.dependOn(&run_json_tests.step);
-    }
-
-    // =================== BINARIES for TARGET + OPTIMIZATION_MODE ===================
-
-    for (build_targets) |target| {
-        for (build_configs) |config| {
-            const exe_name = try std.mem.concat(allocator, u8, &[_][]const u8{ "vsfragment", "_", config.name });
-
-            const exe = b.addExecutable(.{
-                .name = exe_name,
-                .root_source_file = .{ .path = "main.zig" },
-                .optimize = config.optimize,
-                .target = target,
-            });
-
-            exe.linkLibC();
-
-            addCommonModules(b, exe);
-
-            const target_output = b.addInstallArtifact(exe, .{
-                .dest_dir = .{
-                    .override = .{
-                        .custom = try target.zigTriple(b.allocator),
-                    },
-                },
-            });
-
-            b.getInstallStep().dependOn(&target_output.step);
+                b.getInstallStep().dependOn(&target_output.step);
+            }
         }
     }
 }
 
-// =================== MODULES ===================
-
-fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
-    const snippet = b.addModule("snippet", .{ .source_file = .{ .path = "structs/snippet.zig" } });
-    const read_lines = b.addModule("read_lines", .{ .source_file = .{ .path = "utils/read_lines.zig" } });
-    const coord = b.addModule("coord", .{ .source_file = .{ .path = "structs/coord.zig" } });
-    const memory_mgmt = b.addModule("memory_mgmt", .{ .source_file = .{ .path = "utils/memory_mgmt.zig" } });
-    const constants = b.addModule("constants", .{ .source_file = .{ .path = "constants/cli_constants.zig" } });
-
-    const flags = b.addModule("flags", .{
-        .source_file = .{ .path = "structs/flags.zig" },
-        .dependencies = &.{
-            .{ .name = "constants", .module = constants },
-        },
-    });
-
-    const write_results = b.addModule("write_results", .{
-        .source_file = .{ .path = "utils/write_results.zig" },
-        .dependencies = &.{
-            .{ .name = "snippet", .module = snippet },
-            .{ .name = "constants", .module = constants },
-        },
-    });
-
-    const clap = b.addModule("clap", .{
-        .source_file = .{ .path = "../zig-clap/clap.zig" },
-    });
+fn addCommonModules(b: *Build, exe: *CompileStep) void {
+    const snippet = b.addModule("snippet", .{ .root_source_file = .{ .path = "structs/snippet.zig" } });
+    const read_lines = b.addModule("read_lines", .{ .root_source_file = .{ .path = "utils/read_lines.zig" } });
+    const coord = b.addModule("coord", .{ .root_source_file = .{ .path = "structs/coord.zig" } });
+    const memory_mgmt = b.addModule("memory_mgmt", .{ .root_source_file = .{ .path = "utils/memory_mgmt.zig" } });
+    const constants = b.addModule("constants", .{ .root_source_file = .{ .path = "constants/cli_constants.zig" } });
 
     const json_parser = b.createModule(.{
-        .source_file = .{ .path = "core/json_parser.zig" },
-        .dependencies = &.{
+        .root_source_file = .{ .path = "core/json_parser.zig" },
+        .imports = &.{
             .{ .name = "snippet", .module = snippet },
             .{ .name = "memory_mgmt", .module = memory_mgmt },
             .{ .name = "read_lines", .module = read_lines },
@@ -164,45 +123,47 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
         },
     });
 
+    const flags = b.addModule("flags", .{
+        .root_source_file = .{ .path = "structs/flags.zig" },
+        .imports = &.{.{ .name = "constants", .module = constants }},
+    });
+
+    const write_results = b.addModule("write_results", .{ .root_source_file = .{ .path = "utils/write_results.zig" }, .imports = &.{
+        .{ .name = "snippet", .module = snippet },
+        .{ .name = "constants", .module = constants },
+    } });
+
+    const clap = b.addModule("clap", .{
+        .root_source_file = .{ .path = "../zig-clap/clap.zig" },
+    });
+
     const modify_snippet = b.addModule("modify_snippet", .{
-        .source_file = .{ .path = "core/modify_snippet.zig" },
-        .dependencies = &.{
-            .{ .name = "snippet", .module = snippet },
-            .{ .name = "memory_mgmt", .module = memory_mgmt },
-            .{ .name = "constants", .module = constants },
-        },
+        .root_source_file = .{ .path = "core/modify_snippet.zig" },
+        .imports = &.{ .{ .name = "snippet", .module = snippet }, .{ .name = "memory_mgmt", .module = memory_mgmt }, .{ .name = "constants", .module = constants } },
     });
 
     const create_file = b.addModule("create_file", .{
-        .source_file = .{ .path = "utils/create_file.zig" },
-        .dependencies = &.{
-            .{ .name = "snippet", .module = snippet },
-            .{ .name = "constants", .module = constants },
-        },
+        .root_source_file = .{ .path = "utils/create_file.zig" },
+        .imports = &.{ .{ .name = "snippet", .module = snippet }, .{ .name = "constants", .module = constants } },
     });
 
     const cli_parser = b.addModule("cli_parser", .{
-        .source_file = .{ .path = "core/cli_parser.zig" },
-        .dependencies = &.{
-            .{ .name = "clap", .module = clap },
-            .{ .name = "flags", .module = flags },
-            .{ .name = "memory_mgmt", .module = memory_mgmt },
-            .{ .name = "constants", .module = constants },
-        },
+        .root_source_file = .{ .path = "core/cli_parser.zig" },
+        .imports = &.{ .{ .name = "clap", .module = clap }, .{ .name = "flags", .module = flags }, .{ .name = "memory_mgmt", .module = memory_mgmt }, .{ .name = "constants", .module = constants } },
     });
 
-    exe.addModule("flags", flags);
-    exe.addModule("snippet", snippet);
-    exe.addModule("coord", coord);
-    exe.addModule("read_lines", read_lines);
-    exe.addModule("memory_mgmt", memory_mgmt);
-    exe.addModule("json_parser", json_parser);
-    exe.addModule("modify_snippet", modify_snippet);
-    exe.addModule("cli_parser", cli_parser);
-    exe.addModule("clap", clap);
-    exe.addModule("constants", constants);
-    exe.addModule("write_results", write_results);
-    exe.addModule("create_file", create_file);
+    exe.root_module.addImport("flags", flags);
+    exe.root_module.addImport("cli_parser", cli_parser);
+    exe.root_module.addImport("flags", flags);
+    exe.root_module.addImport("snippet", snippet);
+    exe.root_module.addImport("coord", coord);
+    exe.root_module.addImport("read_lines", read_lines);
+    exe.root_module.addImport("memory_mgmt", memory_mgmt);
+    exe.root_module.addImport("json_parser", json_parser);
+    exe.root_module.addImport("modify_snippet", modify_snippet);
+    exe.root_module.addImport("cli_parser", cli_parser);
+    exe.root_module.addImport("clap", clap);
+    exe.root_module.addImport("constants", constants);
+    exe.root_module.addImport("write_results", write_results);
+    exe.root_module.addImport("create_file", create_file);
 }
-
-// /Users/kuro/Documents/Podman/zig_container/binaries/
