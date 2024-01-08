@@ -69,7 +69,7 @@ pub fn printCLIFlags() !void {
     }
 }
 
-pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
+pub fn parseCLI(allocator: std.mem.Allocator) !Flags {
 
     // ALL FLAGS  ./vsznippet-fast -h -f f -o o -l l -r r -t t -d d -p -c aaaaa qqq
 
@@ -106,15 +106,17 @@ pub fn getFragmentFlags(allocator: std.mem.Allocator) !Flags {
     defer res.deinit();
 
     return Flags{
-        .file_path = if (res.args.file) |f| f else null,
-        .output_path = if (res.args.output) |o| o else null,
-        .code_str = if (res.args.code) |c| c else null,
-        .lang = if (res.args.lang) |l| l else null,
-        .prefix = if (res.args.prefix) |r| r else null,
-        .title = if (res.args.title) |t| t else null,
-        .description = if (res.args.desc) |d| d else null,
+        .file_path = if (res.args.file) |f| f else "",
+        .output_path = if (res.args.output) |o| o else "",
+
+        .code_str = if (res.args.code) |c| c else "",
+        .lang = if (res.args.lang) |l| l else "",
+        .prefix = if (res.args.prefix) |r| r else "",
+        .title = if (res.args.title) |t| t else "",
+        .description = if (res.args.desc) |d| d else "",
         .help = if (res.args.help == 1) true else false,
         .print = if (res.args.print == 1) true else false,
+
         .confirmation = if (res.args.y == 1) true else false,
         .force = if (res.args.force == 1) true else false,
     };

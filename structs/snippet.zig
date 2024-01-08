@@ -30,26 +30,26 @@ pub const Snippet = struct {
 
     pub fn setMetadata(
         self: *Snippet,
-        title: ?[]const u8,
-        prefix: ?[]const u8,
-        description: ?[]const u8,
-        create_flag: ?bool,
-        force: ?bool,
+        title: []const u8,
+        prefix: []const u8,
+        description: []const u8,
+        create_flag: bool,
+        force: bool,
     ) void {
-        if (title) |newTitle| {
-            self.title = newTitle;
+        if (title.len > 1) {
+            self.title = title;
         }
-        if (prefix) |newPrefix| {
-            self.prefix = newPrefix;
+        if (prefix.len > 1) {
+            self.prefix = prefix;
         }
-        if (description) |newDescription| {
-            self.description = newDescription;
+        if (description.len > 1) {
+            self.description = description;
         }
-        if (create_flag) |create| {
-            self.create_flag = create;
+        if (create_flag) {
+            self.create_flag = create_flag;
         }
-        if (force) |f| {
-            self.force = f;
+        if (force) {
+            self.force = force;
         }
     }
 
@@ -61,41 +61,11 @@ pub const Snippet = struct {
         allocator.free(self.body);
     }
 
-    // NOTE: use Snippet.convertFileToSnippet() everywhere - MOST efficient
-    pub fn transformFileToSnippet(allocator: std.mem.Allocator, filename: []const u8) !Snippet {
-        const file = try std.fs.cwd().openFile(filename, .{});
-        defer file.close();
-
-        var buf_reader = std.io.bufferedReader(file.reader());
-        var in_stream = buf_reader.reader();
-
-        var lines = std.ArrayList([]const u8).init(allocator);
-        defer lines.deinit();
-
-        var buf: [1024]u8 = undefined; //1024 bytes or 1kb
-
-        while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-            const line_copy = try allocator.dupe(u8, line);
-            try lines.append(line_copy);
-        }
-
-        const file_lines = try lines.toOwnedSlice();
-        defer {
-            for (file_lines) |slice| {
-                allocator.free(slice);
-            }
-            allocator.free(file_lines);
-        }
-
-        const snippet = try Snippet.createFromLines(allocator, file_lines, false);
-        return snippet;
-    }
-
     // append to existing snippets file
     // if file exists and they pass the -y flag we just insert into it by continuing below flow
 
     pub fn appendSnippet(self: *Snippet, allocator: std.mem.Allocator, output_file_path: []const u8, print_out: bool) !void {
-        const file = try std.fs.openFileAbsolute(output_file_path, .{ .mode = .read_write });
+        const file = try std.fs.cwd().openFile(output_file_path, .{ .mode = .read_write });
 
         defer file.close();
 
@@ -104,15 +74,11 @@ pub const Snippet = struct {
         // Determine the file size
         const fileSize = try file.getEndPos();
 
-        // Get Insertion Pos if File not Empty
         if (fileSize > 0) {
-
-            // Allocate a buffer to hold the file content
             const buffer = try allocator.alloc(u8, fileSize);
 
             defer allocator.free(buffer);
 
-            // Read the file content into the buffer
             _ = try file.readAll(buffer);
             const snippet_file_valid = try std.json.validate(allocator, buffer);
 
@@ -135,11 +101,9 @@ pub const Snippet = struct {
         self.create_flag = false;
 
         // Write the snippet to the file
+
         const formatOptions = std.fmt.FormatOptions{};
-
-        // Write the snippet to the file
         self.format("", formatOptions, file.writer()) catch unreachable;
-
         _ = try file.write("}");
         self.create_flag = old_create_flag;
 
@@ -154,15 +118,15 @@ pub const Snippet = struct {
             return;
         }
 
-        const file = std.fs.createFileAbsolute(output_file_path, .{}) catch |err| {
+        const file = std.fs.cwd().createFile(output_file_path, .{ .read = true }) catch |err| {
             std.debug.panic("Failed to Create new Snippets File:\nError:\x1b[31m{}\x1b[0m\n\n", .{err});
         };
 
         defer file.close();
 
-        const formatOptions = std.fmt.FormatOptions{};
-
         // Write the snippet to the file
+
+        const formatOptions = std.fmt.FormatOptions{};
         try self.format("", formatOptions, file.writer());
 
         if (print_out) print("\x1b[92mSuccessfully Created Snippets File \x1b[0m\x1b[97m{s}\x1b[0m\n", .{output_file_path});
@@ -170,7 +134,7 @@ pub const Snippet = struct {
 
     // read file and pass lines directly to parseLine
     pub fn convertFileToSnippet(allocator: std.mem.Allocator, filename: []const u8, create_flag: bool) !Snippet {
-        const file = try std.fs.cwd().openFile(filename, .{});
+        const file = try std.fs.cwd().openFile(filename, .{ .mode = .read_write });
         defer file.close();
 
         var buf_reader = std.io.bufferedReader(file.reader());
@@ -252,23 +216,26 @@ pub const Snippet = struct {
                     try escapedLineBuilder.append(char);
                 },
                 else => {
-                    // Reset space counter and append other characters directly
+                    // to skip handling escaped characters - replace the if{}else{}spacecount=0 check
+                    if (isControlCharacter(char)) {
+                        const escapedChar = getEscapedControlChar(char);
+                        for (escapedChar) |ec| {
+                            try escapedLineBuilder.append(ec);
+                        }
+                    } else {
+                        try escapedLineBuilder.append(char);
+                    }
                     spaceCount = 0;
-                    try escapedLineBuilder.append(char);
                 },
             }
         }
 
-        // Add closing quote
         try escapedLineBuilder.append('\"');
 
-        // Add comma except for the last line
         try escapedLineBuilder.append(',');
 
         return escapedLineBuilder.toOwnedSlice();
     }
-
-    // IMPORTANT -> call snippet.destroy() once done to free String Memory
 
     pub fn createFromLines(allocator: std.mem.Allocator, lines: []const []const u8, write_flag: bool) !Snippet {
         var parsedLines = std.ArrayList([]const u8).init(allocator);
@@ -276,13 +243,10 @@ pub const Snippet = struct {
 
         const totalLines = lines.len;
 
-        // for last line dont add a Comma
         for (lines, 0..) |line, i| {
             const serialized_line = try parseLine(allocator, line);
 
-            // If it's the last line, remove the last character (the comma)
-
-            if (i == totalLines - 1) {
+            if (i == totalLines - 1) { // If it's the last line, remove the last character (the comma)
                 const new_slice = try allocator.alloc(u8, serialized_line.len - 1);
 
                 @memcpy(new_slice, serialized_line[0 .. serialized_line.len - 1]);
@@ -290,7 +254,6 @@ pub const Snippet = struct {
 
                 try parsedLines.append(new_slice);
 
-                //try parsedLines.append(serialized_line[0 .. serialized_line.len - 1]);
                 break;
             }
 
@@ -307,19 +270,14 @@ pub const Snippet = struct {
         };
     }
 
-    pub fn createFromSingleString(allocator: std.mem.Allocator, input: [*c]const u8, write_flag: bool) !Snippet {
-
-        // Convert Input to a Zig String
-        const cStringSlice: []const u8 = std.mem.span(input);
-
-        const split_lines = try convertStringToStringSlice(allocator, cStringSlice);
+    pub fn createFromString(allocator: std.mem.Allocator, str: []const u8, write_flag: bool) !Snippet {
+        const split_lines = try convertStringToStringSlice(allocator, str);
         defer allocator.free(split_lines);
 
         if (write_flag == true) {
             const out = std.io.getStdOut();
             var buf = std.io.bufferedWriter(out.writer());
-            //var w = buf.writer();
-            try buf.writer().print("Direct String Received in Snippet from JS-C: \n{s}\n", .{cStringSlice});
+            try buf.writer().print("Direct String Received in Snippet from JS-C: \n{s}\n", .{str});
             try buf.flush();
         }
 
@@ -327,12 +285,63 @@ pub const Snippet = struct {
 
         return snippet;
     }
+
+    pub fn appendSnippetFilePassed(
+        self: *Snippet,
+        file: std.fs.File,
+        print_out: bool,
+    ) !void {
+        const formatOptions = std.fmt.FormatOptions{};
+        self.format("", formatOptions, file.writer()) catch unreachable;
+
+        if (print_out) print("\nSuccessfully Appended to Passed File\n", .{});
+    }
 };
 
-// =================== EXTENSIONS =====================
-// EXTENSIONS - Converting Multiple Files
+// ***** extensions
 
-// test "Large Snippet File from All Files in Dir" {}
+fn isControlCharacter(char: u8) bool {
+    return char < 0x20 or char == 0x7F; // ascii control characters are in the range 0x00-0x1F and 0x7F.
+}
+
+fn getEscapedControlChar(char: u8) []const u8 {
+    return switch (char) {
+        0 => "\\0", // Null
+        1 => "^A", // Start of Heading
+        2 => "^B", // Start of Text
+        3 => "^C", // End of Text
+        4 => "^D", // End of Transmission
+        5 => "^E", // Enquiry
+        6 => "^F", // Acknowledge
+        7 => "\\a", // Bell
+        8 => "\\b", // Backspace
+        9 => "\\t", // Horizontal Tab
+        10 => "\\n", // Line Feed
+        11 => "\\v", // Vertical Tab
+        12 => "\\f", // Form Feed
+        13 => "\\r", // Carriage Return
+        14 => "^N", // Shift Out
+        15 => "^O", // Shift In
+        16 => "^P", // Data Link Escape
+        17 => "^Q", // Device Control 1
+        18 => "^R", // Device Control 2
+        19 => "^S", // Device Control 3
+        20 => "^T", // Device Control 4
+        21 => "^U", // Negative Acknowledge
+        22 => "^V", // Synchronous Idle
+        23 => "^W", // End of Transmission Block
+        24 => "^X", // Cancel
+        25 => "^Y", // End of Medium
+        26 => "^Z", // Substitute
+        27 => "\\e", // Escape
+        28 => "^\\", // File Separator
+        29 => "^]", // Group Separator
+        30 => "^^", // Record Separator
+        31 => "^_", // Unit Separator
+        127 => "\\DEL", // Delete
+        else => &[_]u8{char}, // Default: return the character itself
+    };
+}
 
 fn concatStrings(allocator: std.mem.Allocator, one: []const u8, two: []const u8) ![]u8 {
     if (one[one.len - 1] != '/') {
@@ -351,98 +360,220 @@ fn concatStrings(allocator: std.mem.Allocator, one: []const u8, two: []const u8)
 
 fn checkIfPathExists(path: []const u8) !bool {
     _ = std.fs.cwd().statFile(path) catch |err| {
-        std.debug.print("No File Found at Path:{}\n", .{err});
-
         if (err == error.FileNotFound) return false;
         return err;
     };
 
-    std.debug.print("Output directory exists:{s}\n", .{path});
-
     return true;
 }
 
-fn isBinaryFile(fileName: []const u8) bool {
-    // Add more extensions if needed
-    // need to handle empty extensions for binaries
-    const binaryExtensions = &[_][]const u8{ ".o", ".bin", ".exe", ".dll" };
-    for (binaryExtensions) |ext| {
-        if (std.mem.endsWith(u8, fileName, ext)) {
-            return true;
-        }
-    }
-    return false;
+fn checkIfUtf8(allocator: std.mem.Allocator, filePath: []const u8) !bool {
+    const file = try std.fs.cwd().openFile(filePath, .{});
+    defer file.close();
+
+    var lines_to_read: u64 = 50;
+
+    const bufferSize = try file.getEndPos();
+    if (bufferSize == 0) return false;
+
+    if (bufferSize < lines_to_read) lines_to_read = bufferSize;
+
+    const data = try allocator.alloc(u8, lines_to_read);
+    defer allocator.free(data);
+
+    _ = try file.read(data[0..lines_to_read]); // Read up to 50 bytes from the file
+
+    return std.unicode.utf8ValidateSlice(data);
 }
 
-// IMPORTANT - MAKE SURE WE CHECK FILE NOT BINARY AND VALID UTF8
-// use std.unicode utilities to check
+// convert a full directory to a single Snippet file
 
-test "Reading all Files from a Directory and Converting to a Single Snippet File" {
-    const allocator = std.testing.allocator;
+// => convertDirectoryToSnippetFile (allocator, dir_path, output_file );
 
-    const input_file_dir = "/Users/kuro/Documents/Code/Zig/FileIO/file";
-    const output_dir_path = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup";
+pub fn convertDirectoryToSnippetFile(
+    allocator: std.mem.Allocator,
+    dir_path: []const u8,
+    output_file: []const u8,
+) !usize {
+    const out = std.io.getStdOut();
+    var buf = std.io.bufferedWriter(out.writer());
+    var w = buf.writer();
 
-    if (!try checkIfPathExists(output_dir_path)) {
-        _ = try std.fs.cwd().makeDir(output_dir_path);
+    if (try checkIfPathExists(output_file) == true) {
+        try w.print("File {s} Already Exists. Must pass a new File.\n", .{output_file});
+        try buf.flush();
+        return 0;
     }
 
-    var dir = try std.fs.cwd().openDir(input_file_dir, .{ .iterate = true });
-    defer dir.close();
+    var new_file = std.fs.cwd().createFile(output_file, .{ .read = true }) catch |err| {
+        try w.print("Failed Create output File:\nError:\x1b[31m{}\x1b[0m\n\n", .{err});
+        try buf.flush();
+        return 0;
+    };
 
-    const combined_file_path = try concatStrings(allocator, output_dir_path, "backup.json");
-    defer allocator.free(combined_file_path);
+    defer new_file.close();
+
+    var dir = std.fs.cwd().openDir(dir_path, .{ .iterate = true }) catch |err| {
+        try w.print("Failed to Open Path Provided {s}\nError:\x1b[31m{}\x1b[0m\n\n", .{ dir_path, err });
+        try buf.flush();
+        return 0;
+    };
+
+    defer dir.close();
 
     var it = dir.iterate();
 
     var i: usize = 0;
+
+    var isFirstSnippet = true;
+
     while (try it.next()) |entry| {
-        if (entry.kind == std.fs.File.Kind.file) {
-            if (isBinaryFile(entry.name)) {
-                std.debug.print("Non UTF-8 File: {s}\n", .{entry.name});
-                continue;
-            }
+        if (entry.kind != std.fs.File.Kind.file) continue;
 
-            const input_file_full_path = try concatStrings(allocator, input_file_dir, entry.name);
-            defer allocator.free(input_file_full_path);
-            // std.debug.print("File: {s}\n", .{input_file_full_path});
+        const dir_read_file = try concatStrings(allocator, dir_path, entry.name);
+        defer allocator.free(dir_read_file);
 
-            var snippet = try Snippet.convertFileToSnippet(allocator, input_file_full_path, true);
-
-            defer snippet.destroy(allocator);
-
-            if (i == 0) {
-                try snippet.writeSnippet(combined_file_path, false);
-            } else {
-                try snippet.appendSnippet(allocator, combined_file_path, false);
-            }
-
-            i += 1;
-        } else {
-            // std.debug.print("Not a File: {s}-{}\n", .{ entry.name, entry.kind });
+        if (try checkIfUtf8(allocator, dir_read_file) == false) {
+            try w.print("Non UTF Data Detected in File (non serializable):{s}\n", .{entry.name});
+            try buf.flush();
+            continue;
         }
+
+        var snippet = try Snippet.convertFileToSnippet(
+            allocator,
+            dir_read_file,
+            false,
+        );
+        snippet.title = entry.name;
+
+        defer snippet.destroy(allocator);
+
+        if (isFirstSnippet) {
+            try new_file.writeAll("{\n");
+            isFirstSnippet = false;
+        } else {
+            try new_file.writeAll(",\n");
+        }
+
+        try snippet.appendSnippetFilePassed(new_file, false);
+
+        i += 1;
     }
 
-    try std.fs.cwd().deleteFile(combined_file_path);
+    _ = try new_file.write("}");
 
-    try std.testing.expect(true);
-}
-
-fn listFilesInDir(dirPath: []const u8) !void {
-    var dir = try std.fs.cwd().openDir(dirPath, .{ .iterate = true });
-    defer dir.close();
-
-    var it = dir.iterate();
-    while (try it.next()) |entry| {
-        std.debug.print("File: {s}-{}\n", .{ entry.name, entry.kind });
-    }
+    return i;
 }
 
 pub const output_file_not_exists = "\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n\x1b[31mOutput Path Snippets File does not exist.\x1b[0m\n";
 pub const msg_outputfile_missing = "\x1b[37mTo create a new file at the specificied location use the \x1b[1m-y\x1b[0m flag with \x1b[1m-o\x1b[0m.\x1b[0m\n\n\x1b[97m./vsfragment -f djikstras.md -o /users/code/dsa.code-snippets -y\x1b[0m";
 
-// =================== HELPERS =====================
-// HELPERS - Find second last Brace Position
+// ******* snippet tests
+
+test "Snippet convertDirectoryToSnippetFile Call" {
+    const allocator = std.testing.allocator;
+
+    const dir_path = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup/input";
+    const output_file = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup/output/testing.code-snippets";
+
+    const successul_files = try convertDirectoryToSnippetFile(allocator, dir_path, output_file);
+
+    try std.testing.expectEqual(5, successul_files);
+
+    try std.fs.cwd().deleteFile(output_file);
+}
+
+test "Snippet File Convert" {
+    const allocator = std.testing.allocator;
+
+    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
+
+    const snippet = try Snippet.convertFileToSnippet(allocator, file_name, true);
+    const format_to_str = try std.fmt.allocPrint(allocator, "{s}", .{snippet});
+
+    defer {
+        for (snippet.body) |line| {
+            allocator.free(line);
+        }
+        allocator.free(snippet.body);
+        allocator.free(format_to_str);
+    }
+}
+
+test "Snippet Direct Write File Convert" {
+    const allocator = std.testing.allocator;
+
+    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
+    const new_file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/snippetcreate.code-snippets";
+
+    var snippet = try Snippet.convertFileToSnippet(allocator, file_name, true);
+
+    try snippet.writeSnippet(new_file_name, false);
+
+    defer {
+        for (snippet.body) |line| {
+            allocator.free(line);
+        }
+        allocator.free(snippet.body);
+    }
+}
+
+test "Snippet Append Fragment to File" {
+    const allocator = std.testing.allocator;
+
+    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
+    const existing_file = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/snippetcreate.code-snippets";
+
+    var snippet = try Snippet.convertFileToSnippet(allocator, file_name, false);
+
+    try snippet.appendSnippet(allocator, existing_file, false);
+
+    defer {
+        for (snippet.body) |line| {
+            allocator.free(line);
+        }
+        allocator.free(snippet.body);
+    }
+
+    try std.fs.cwd().deleteFile(existing_file);
+}
+
+test "Test Snippet Parse From Direct C String" {
+    const mock_selection =
+        \\hello
+        \\world
+        \\\\\\\\
+        \\\n\n\n\n\n
+        \\nextline nextline
+        \\oneline \n\n    aaaa\\\\ \ttttt XXXX
+        \\oneline \n\n    aaaa\\\\ \ttttt XXXX
+        \\          \!!!!!,,,,,
+        \\
+        \\
+    ;
+
+    const allocator = std.testing.allocator;
+
+    const cString: [*c]const u8 = "Your test string here";
+    const cStringSlice: []const u8 = std.mem.span(cString);
+
+    const split_s = try convertStringToStringSlice(allocator, cStringSlice);
+    defer allocator.free(split_s);
+
+    acceptStringSlicesConst(split_s);
+
+    var sn1 = try Snippet.createFromString(allocator, mock_selection, false);
+
+    var sn2 = try Snippet.createFromString(allocator, std.mem.span(cString), false);
+
+    defer {
+        sn1.destroy(allocator);
+        sn2.destroy(allocator);
+    }
+    try std.testing.expect(true);
+}
+
+// ****** helpers
 
 fn findSecondLastBracePosition(buffer: []const u8) usize {
     var braceCount: usize = 0;
@@ -483,97 +614,17 @@ fn findSecondLastBracePosition(buffer: []const u8) usize {
     return 0;
 }
 
-// =================== SNIPPET TESTS =====================
+fn listFilesInDir(dirPath: []const u8) !void {
+    var dir = try std.fs.cwd().openDir(dirPath, .{ .iterate = true });
+    defer dir.close();
 
-test "Snippet File Convert" {
-    const allocator = std.testing.allocator;
-    //  Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/testfile.txt
-
-    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
-
-    const snippet = try Snippet.convertFileToSnippet(allocator, file_name, true);
-    const format_to_str = try std.fmt.allocPrint(allocator, "{s}", .{snippet});
-
-    defer {
-        for (snippet.body) |line| {
-            allocator.free(line);
-        }
-        allocator.free(snippet.body);
-        allocator.free(format_to_str);
-    }
-
-    // std.debug.print("Direct Convert\n{s}\n", .{format_to_str});
-}
-
-test "Snippet Direct Write File Convert" {
-    const allocator = std.testing.allocator;
-    //  Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/testfile.txt
-
-    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
-    const new_file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/snippetcreate.code-snippets";
-
-    var snippet = try Snippet.convertFileToSnippet(allocator, file_name, true);
-
-    try snippet.writeSnippet(new_file_name, false);
-
-    defer {
-        for (snippet.body) |line| {
-            allocator.free(line);
-        }
-        allocator.free(snippet.body);
+    var it = dir.iterate();
+    while (try it.next()) |entry| {
+        std.debug.print("File: {s}-{}\n", .{ entry.name, entry.kind });
     }
 }
 
-test "Snippet Append Fragment to File" {
-    const allocator = std.testing.allocator;
-    //  Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/testfile.txt
-
-    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
-    const existing_file = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/snippetcreate.code-snippets";
-
-    var snippet = try Snippet.convertFileToSnippet(allocator, file_name, false);
-
-    try snippet.appendSnippet(allocator, existing_file, false);
-
-    defer {
-        for (snippet.body) |line| {
-            allocator.free(line);
-        }
-        allocator.free(snippet.body);
-    }
-
-    try std.fs.cwd().deleteFile(existing_file);
-}
-
-// test "Test Snippet Parse From Direct C String" {
-//     const mock_selection =
-//         \\hello
-//         \\world
-//         \\\\\\\\
-//         \\\n\n\n\n\n
-//         \\nextline nextline
-//         \\oneline \n\n    aaaa\\\\ \ttttt XXXX
-//         \\oneline \n\n    aaaa\\\\ \ttttt XXXX
-//         \\          \!!!!!,,,,,
-//         \\
-//         \\
-//     ;
-
-//     const allocator = std.testing.allocator;
-
-//     const cString: [*c]const u8 = "Your test string here";
-//     const cStringSlice: []const u8 = std.mem.span(cString);
-
-//     const split_s = try convertStringToStringSlice(allocator, cStringSlice);
-//     defer allocator.free(split_s);
-
-//     acceptStringSlicesConst(split_s);
-
-//     try Snippet.createFromSingleString(allocator, mock_selection, true);
-//     try Snippet.createFromSingleString(allocator, cString, true);
-// }
-
-// ============== STRING CONVERSION UTILS ==============
+// ****** string utils
 
 pub fn convertStringToStringSlice(allocator: std.mem.Allocator, code_str: []const u8) ![][]const u8 {
     var splitLines = std.ArrayList([]const u8).init(allocator);
@@ -589,14 +640,16 @@ pub fn convertStringToStringSlice(allocator: std.mem.Allocator, code_str: []cons
 }
 
 pub fn acceptStringSlicesConst(str_slices: []const []const u8) void {
-    const len = str_slices.len;
-    std.debug.print("Length of Passed String Slices {d}\n", .{len});
+    var sz: usize = 0;
+
+    sz += str_slices.len;
 
     for (str_slices) |st| {
-        std.debug.print("{s}\n", .{st});
+        sz += st.len;
     }
 }
-// ============================================
+
+// ****** json
 
 pub fn testSnippetToString(allocator: std.mem.Allocator, snippet: Snippet) !void {
     const to_string = try snippet.toString(allocator);
@@ -634,13 +687,7 @@ pub fn testSnippetToString(allocator: std.mem.Allocator, snippet: Snippet) !void
 
     print("Stringified {s}\n", .{string.items});
 
-    //const parsed_snip = parsed.value;
-
-    //print("Parsed Struct {}\n", .{parsed_snip});
     print("Parsed No Err\n", .{});
-
-    // ===================================================
-    // ===================================================
 
     const ParseObject = struct {
         thisisunknown: SnippetContent,

@@ -13,37 +13,54 @@ pub const FlagEval = enum(u8) {
 // use .? to coeerce type to remove Optional
 
 pub const Flags = struct {
-    file_path: ?[]const u8 = null,
-    output_path: ?[]const u8 = null,
-    code_str: ?[]const u8 = null,
-    lang: ?[]const u8 = null,
+    file_path: []const u8 = "",
+    output_path: []const u8 = "",
+    code_str: []const u8 = "",
+    lang: []const u8 = "",
     help: bool = false,
     print: bool = false,
-    title: ?[]const u8 = null,
-    description: ?[]const u8 = null,
-    prefix: ?[]const u8 = null,
+    title: []const u8 = "",
+    description: []const u8 = "",
+    prefix: []const u8 = "",
     confirmation: bool = false,
     force: bool = false,
 
     pub fn evalCmds(self: Flags) FlagEval {
 
         // passed no file or direct code
-        if (self.file_path == null and self.code_str == null) {
+
+        if (std.mem.eql(u8, self.file_path, "") and
+            std.mem.eql(u8, self.code_str, ""))
+        {
+            //            std.debug.print("no -f or -c passed , invalid", .{});
             return FlagEval.invalid;
         }
 
         // passed file but no output
-        if (self.file_path != null and self.output_path == null) {
+
+        if (!std.mem.eql(u8, self.file_path, "") and
+            std.mem.eql(u8, self.output_path, ""))
+        {
+            //    std.debug.print("-f passed no -o  , file", .{});
+
             return FlagEval.file;
         }
 
         // passed file and output path
-        if (self.file_path != null and self.output_path != null) {
+
+        if (!std.mem.eql(u8, self.file_path, "") and
+            !std.mem.eql(u8, self.output_path, ""))
+        {
+            //    std.debug.print("-f and -o passed , file_out", .{});
+
             return FlagEval.file_out;
         }
 
-        // passed Code Directly
-        if (self.code_str != null) {
+        // passed inline only
+
+        if (!std.mem.eql(u8, self.code_str, "")) {
+            //            std.debug.print("-c passed, inline", .{});
+
             return FlagEval.inline_code;
         }
 
@@ -88,17 +105,16 @@ pub const Flags = struct {
         writer: anytype,
     ) !void {
         try writer.print("Flags:\n", .{});
-        if (self.file_path) |fp| try writer.print("  File Path: {s}\n", .{fp});
-        if (self.output_path) |op| try writer.print("  Output Path: {s}\n", .{op});
-        if (self.lang) |lg| try writer.print("  Language: {s}\n", .{lg});
+        if (self.file_path.len > 1) try writer.print("  File Path: {s}\n", .{self.file_path});
+        if (self.output_path.len > 1) try writer.print("  Output Path: {s}\n", .{self.output_path});
+        if (self.lang.len > 1) try writer.print("  Language: {s}\n", .{self.lang});
         try writer.print("  Print: {}\n", .{self.print});
         try writer.print("  Help: {}\n", .{self.help});
-        if (self.title) |t| try writer.print("  Title: {s}\n", .{t});
-        if (self.description) |d| try writer.print("  Description: {s}\n", .{d});
-        if (self.prefix) |p| try writer.print("  Prefix: {s}\n", .{p});
+        if (self.title.len > 1) try writer.print("  Title: {s}\n", .{self.title});
+        if (self.description.len > 1) try writer.print("  Description: {s}\n", .{self.description});
+        if (self.prefix.len > 1) try writer.print("  Prefix: {s}\n", .{self.prefix});
         if (self.confirmation == true) try writer.print("  Confirmation: true\n", .{});
-        if (self.code_str) |cs|
-            for (cs) |line| try writer.print("  Code String: {c}\n", .{line});
+        if (self.code_str.len > 1) try writer.print("  Code String: {c}\n", .{self.code_str});
     }
 
     pub fn printHelp(self: Flags) !void {

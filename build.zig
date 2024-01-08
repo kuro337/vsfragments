@@ -6,7 +6,11 @@ const Tag = std.Target.Os.Tag;
 const Arch = std.Target.Cpu.Arch;
 const OptimizeMode = std.builtin.OptimizeMode;
 
-const OS = [_]Tag{ Tag.macos, Tag.linux, Tag.windows };
+const OS = [_]Tag{
+    Tag.macos, Tag.linux,
+    //Tag.windows,
+};
+
 const ARCH = [_]Arch{ Arch.aarch64, Arch.x86_64 };
 const MODE = [_]OptimizeMode{ .Debug, .ReleaseSafe, .ReleaseSmall, .ReleaseFast };
 
@@ -26,22 +30,7 @@ pub fn build(b: *Build) !void {
     const union_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/union_tests.zig" }, .target = base_target });
     const read_dir_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/read_dir.zig" }, .target = base_target });
     const c_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/c_tests.zig" }, .target = base_target });
-
-    // enum_tests.zig =======
-    // json_tests.zig =======
-    // union_tests.zug  =======
-    // cli_flags_tests.zig =======
-    // parsing_tests.zig =======
-    // metadata_tests.zig =======
-    // unit_tests.zig =======
-    // str_conv_tests.zig =======
-    // reader_tests.zig =======
-    // union_tests.zig =======
-    // c_tests.zig  =======
-    // read_dir.zig =======
-
-    // printer_tests.zig // todo
-    // stdout_color_tests.zig
+    const batch_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/batch_write_tests.zig" }, .target = base_target });
 
     const run_enum_tests = b.addRunArtifact(enum_tests);
     const run_c_tests = b.addRunArtifact(c_tests);
@@ -54,10 +43,12 @@ pub fn build(b: *Build) !void {
     const run_metadata_tests = b.addRunArtifact(metadata_tests);
     const run_union_tests = b.addRunArtifact(union_tests);
     const run_read_dir_tests = b.addRunArtifact(read_dir_tests);
+    const run_batch_tests = b.addRunArtifact(batch_tests);
 
     addCommonModules(b, cli_flag_tests);
     addCommonModules(b, parsing_tests);
     addCommonModules(b, unit_tests);
+    addCommonModules(b, batch_tests);
 
     test_step.dependOn(&run_unit_tests.step);
     test_step.dependOn(&run_c_tests.step);
@@ -70,6 +61,7 @@ pub fn build(b: *Build) !void {
     test_step.dependOn(&run_reader_tests.step);
     test_step.dependOn(&run_parse_tests.step);
     test_step.dependOn(&run_read_dir_tests.step);
+    test_step.dependOn(&run_batch_tests.step);
 
     for (ARCH) |arch| {
         for (OS) |os| {

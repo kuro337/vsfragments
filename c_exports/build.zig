@@ -1,110 +1,68 @@
 const std = @import("std");
 
-const build_targets = [_]std.zig.CrossTarget{ .{}, .{
-    .cpu_arch = .aarch64,
-    .os_tag = .macos,
-}, .{
-    .cpu_arch = .x86_64,
-    .os_tag = .linux,
-}, .{
-    .cpu_arch = .x86_64,
-    .os_tag = .windows,
-} };
+const CompileStep = std.Build.Step.Compile;
+const Build = std.Build;
+const Tag = std.Target.Os.Tag;
+const Arch = std.Target.Cpu.Arch;
+const OptimizeMode = std.builtin.OptimizeMode;
 
-const BuildConfig = struct {
-    name: []const u8,
-    optimize: std.builtin.OptimizeMode,
+const OS = [_]Tag{
+    Tag.macos, Tag.linux,
+    //Tag.windows,
 };
 
-const build_configs = [_]BuildConfig{
-    .{ .name = "fast", .optimize = .ReleaseFast },
-    .{ .name = "safe", .optimize = .ReleaseSafe },
-    .{ .name = "debug", .optimize = .Debug },
-    .{ .name = "small", .optimize = .ReleaseSmall },
-};
-
-const test_targets = [_]std.zig.CrossTarget{ .{}, .{
-    .cpu_arch = .aarch64,
-    .os_tag = .macos,
-} };
-
-// =================== BUILD ===================
+const ARCH = [_]Arch{ Arch.aarch64, Arch.x86_64 };
+const MODE = [_]OptimizeMode{ .Debug, .ReleaseSafe, .ReleaseSmall, .ReleaseFast };
 
 pub fn build(b: *std.Build) !void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
+    const base_target = b.standardTargetOptions(.{});
 
-    // =================== BINARIES for TARGET + OPTIMIZATION_MODE ===================
+    for (ARCH) |arch| {
+        for (OS) |os| {
+            for (MODE) |optimization| {
+                var resolved_target = base_target;
+                resolved_target.result.cpu.arch = arch;
+                resolved_target.result.os.tag = os;
 
-    for (build_targets) |target| {
-        const exe_target_triple = try target.zigTriple(b.allocator);
+                const lib = b.addStaticLibrary(.{
+                    .name = "vsfragment_cexports",
+                    .root_source_file = .{ .path = "parse_file_c.zig" },
+                    .optimize = optimization,
+                    .target = resolved_target,
+                });
 
-        const bin_path = std.fmt.allocPrint(b.allocator, "bin/{s}", .{exe_target_triple}) catch "format failed";
-        _ = bin_path; // autofix
-        const lib_path = std.fmt.allocPrint(b.allocator, "lib/{s}", .{exe_target_triple}) catch "format failed";
+                lib.linkLibC();
 
-        for (build_configs) |config| {
-            const exe_name = try std.mem.concat(allocator, u8, &[_][]const u8{ "vsfragment_cexports", "_", config.name });
+                addCommonModules(b, lib);
 
-            // =============== START_BINARY_BUILD_CMT ===============
-            // const exe = b.addExecutable(.{
-            //     .name = exe_name,
-            //     .root_source_file = .{ .path = "parse_file_c.zig" },
-            //     .optimize = config.optimize,
-            //     .target = target,
-            // });
+                const cpuarch = @tagName(arch);
+                const osystem = @tagName(os);
+                const release = @tagName(optimization);
 
-            // addCommonModules(b, exe);
+                const target_output_clib = b.addInstallArtifact(lib, .{
+                    .dest_dir = .{
+                        .override = .{
+                            .custom = try std.fmt.allocPrint(b.allocator, "lib/{s}/{s}/{s}", .{ osystem, cpuarch, release }),
+                        },
+                    },
+                });
 
-            // const target_output = b.addInstallArtifact(exe, .{
-            //     .dest_dir = .{
-            //         .override = .{
-            //             .custom = bin_path,
-            //         },
-            //     },
-            // });
-
-            // b.getInstallStep().dependOn(&target_output.step);
-            // =============== END_BINARY_BUILD_CMT ===============
-
-            // =============== STATIC LIBRARY FOR C ===============
-
-            const lib = b.addStaticLibrary(.{
-                .name = exe_name,
-
-                .root_source_file = .{ .path = "parse_file_c.zig" },
-                .target = target,
-                .optimize = config.optimize,
-            });
-
-            lib.linkLibC();
-
-            addCommonModules(b, lib);
-
-            const target_output_clib = b.addInstallArtifact(lib, .{
-                .dest_dir = .{
-                    .override = .{ .custom = lib_path },
-                },
-            });
-
-            b.getInstallStep().dependOn(&target_output_clib.step);
+                b.getInstallStep().dependOn(&target_output_clib.step);
+            }
         }
     }
 }
 
-// =================== MODULES ===================
+fn addCommonModules(b: *Build, exe: *CompileStep) void {
+    const snippet = b.addModule("snippet", .{ .root_source_file = .{ .path = "../structs/snippet.zig" } });
+    const read_lines = b.addModule("read_lines", .{ .root_source_file = .{ .path = "../utils/read_lines.zig" } });
 
-fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
-    const snippet = b.addModule("snippet", .{ .source_file = .{ .path = "../structs/snippet.zig" } });
-    const read_lines = b.addModule("read_lines", .{ .source_file = .{ .path = "../utils/read_lines.zig" } });
-
-    const memory_mgmt = b.addModule("memory_mgmt", .{ .source_file = .{ .path = "../utils/memory_mgmt.zig" } });
-    const constants = b.addModule("constants", .{ .source_file = .{ .path = "../constants/cli_constants.zig" } });
+    const memory_mgmt = b.addModule("memory_mgmt", .{ .root_source_file = .{ .path = "../utils/memory_mgmt.zig" } });
+    const constants = b.addModule("constants", .{ .root_source_file = .{ .path = "../constants/cli_constants.zig" } });
 
     const modify_snippet = b.addModule("modify_snippet", .{
-        .source_file = .{ .path = "../core/modify_snippet.zig" },
-        .dependencies = &.{
+        .root_source_file = .{ .path = "../core/modify_snippet.zig" },
+        .imports = &.{
             .{ .name = "snippet", .module = snippet },
             .{ .name = "memory_mgmt", .module = memory_mgmt },
             .{ .name = "constants", .module = constants },
@@ -112,16 +70,16 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
     });
 
     const create_file = b.addModule("create_file", .{
-        .source_file = .{ .path = "../utils/create_file.zig" },
-        .dependencies = &.{
+        .root_source_file = .{ .path = "../utils/create_file.zig" },
+        .imports = &.{
             .{ .name = "snippet", .module = snippet },
             .{ .name = "constants", .module = constants },
         },
     });
 
     const json_parser = b.createModule(.{
-        .source_file = .{ .path = "../core/json_parser.zig" },
-        .dependencies = &.{
+        .root_source_file = .{ .path = "../core/json_parser.zig" },
+        .imports = &.{
             .{ .name = "snippet", .module = snippet },
             .{ .name = "memory_mgmt", .module = memory_mgmt },
             .{ .name = "read_lines", .module = read_lines },
@@ -130,22 +88,21 @@ fn addCommonModules(b: *std.Build, exe: *std.build.LibExeObjStep) void {
     });
 
     const write_results = b.addModule("write_results", .{
-        .source_file = .{ .path = "../utils/write_results.zig" },
-        .dependencies = &.{
+        .root_source_file = .{ .path = "../utils/write_results.zig" },
+        .imports = &.{
             .{ .name = "snippet", .module = snippet },
             .{ .name = "constants", .module = constants },
         },
     });
 
-    exe.addModule("modify_snippet", modify_snippet);
-    exe.addModule("create_file", create_file);
-    exe.addModule("json_parser", json_parser);
-    exe.addModule("write_results", write_results);
+    exe.root_module.addImport("modify_snippet", modify_snippet);
+    exe.root_module.addImport("create_file", create_file);
+    exe.root_module.addImport("json_parser", json_parser);
+    exe.root_module.addImport("write_results", write_results);
 
-    //exe.addModule("flags", flags);
-    exe.addModule("snippet", snippet);
-    // exe.addModule("coord", coord);
-    exe.addModule("read_lines", read_lines);
-    exe.addModule("memory_mgmt", memory_mgmt);
-    exe.addModule("constants", constants);
+    exe.root_module.addImport("snippet", snippet);
+
+    exe.root_module.addImport("read_lines", read_lines);
+    exe.root_module.addImport("memory_mgmt", memory_mgmt);
+    exe.root_module.addImport("constants", constants);
 }

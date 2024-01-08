@@ -3,9 +3,10 @@ zig-out
 APP_README.md
 mock
 tests/FLOWS_TEST.md
-tests/stdout_color_tests.zig
+
 .snippets
 structs/snippet_old.zig
 c_exports/main.zig
+c_exports/oldbuild.zig
 tests/snip.json
 .DS_Store

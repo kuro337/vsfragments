@@ -11,7 +11,7 @@ const Snippet = @import("snippet").Snippet;
 const Coord = @import("coord").Coord;
 
 test "Read File and Create Snippet" {
-    const lines = try readLinesFromFile(std.testing.allocator, "tests/testfile.txt");
+    const lines = try readLinesFromFile(std.testing.allocator, "tests/mock/testfile.txt");
     defer clearSliceMatrixMemory(lines, std.testing.allocator);
 
     for (lines) |line| {
@@ -95,7 +95,7 @@ test "JSON Parse - Snippet, String, Array, Map -> Requires Allocator" {
 test "Read Line by Line" {
     // Open the file
     //const file = try std.fs.cwd().openFile("/Users/kuro/Library/Application Support/Code/User/snippets/zig.code-snippets", .{});
-    const file = try std.fs.cwd().openFile("tests/testfile.txt", .{});
+    const file = try std.fs.cwd().openFile("tests/mock/testfile.txt", .{});
     defer file.close();
 
     var buf_reader = std.io.bufferedReader(file.reader());

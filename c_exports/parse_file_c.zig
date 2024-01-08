@@ -7,10 +7,6 @@ const checkFileExists = @import("modify_snippet").checkFileExists;
 const handleInputFileNotExists = @import("create_file").handleInputFileNotExists;
 const printFragmentBufferedFileIO = @import("write_results").printFragmentBufferedFileIO;
 
-// NOTE: use Snippet.convertFileToSnippet() everywhere - MOST efficient
-
-// ====================== CORE_NAPI_EXPORTS ======================
-
 export fn parseFileGetSnippet(file_path: [*c]const u8, new_snippet_file: bool, print_out: bool) [*:0]const u8 {
     const allocator = std.heap.c_allocator;
 
@@ -33,7 +29,7 @@ export fn parseFileGetSnippet(file_path: [*c]const u8, new_snippet_file: bool, p
 export fn parseSnippetFromString(lines: [*c]const u8) [*:0]const u8 {
     const allocator = std.heap.c_allocator;
 
-    const snippet = Snippet.createFromSingleString(allocator, lines, false) catch |err| {
+    const snippet = Snippet.createFromString(allocator, std.mem.span(lines), false) catch |err| {
         std.debug.panic("Failed to Parse Text from Direct String {s}\nErr:{}", .{ lines, err });
     };
 

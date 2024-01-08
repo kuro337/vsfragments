@@ -13,7 +13,6 @@
 <br/>
 <br/>
 
-
 _Simple, Lightweight, Lightning Fast_ Native System Binary for generating Code Fragments.
 
 <br/>
@@ -24,13 +23,16 @@ Embeddedable and extensible directly as a Static Library from **C** or **Node**.
 
 <br/>
 
-
 ```bash
 $ vsfragment
 
-*******************************************************************************
-vsfragment - Create reusable Code Fragments for reuse and rapid development
-*******************************************************************************
+
+================================================================================
+*
+* vsfragment - Create reusable Code Fragments for reuse and rapid development
+*
+================================================================================
+
 
 
 Usage: vsfragment [flags]
@@ -43,7 +45,7 @@ vsfragment -f anyfile.md
 _____________________
 
 
-- create vsfragment & Update Snippets File 
+- create vsfragment & Update Snippets File
 
 vsfragment -f djikstras.md -o /users/code/dsa.code-snippets
 
@@ -53,14 +55,14 @@ _____________________
 - generate a Snippet using Inlined Text
 
 vsfragment -c 'import csv
-output_file_path = "output.csv"  
+output_file_path = "output.csv"
 with open(input_path, "r") as infile, open(out_path, "w", newline="") as outfile:
     reader = csv.reader(infile, delimiter="|")
     writer = csv.writer(outfile)
     for row in reader:
         writer.writerow(row)'
 
-*****************************************************************
+================================================================================
 
 Flags:
 
@@ -71,36 +73,32 @@ Flags:
   -p, --print                  Print the Fragment to stdout
   -h, --help                   Print this help message
 
- Optional Flags: 
+ Optional Flags:
 
   --prefix     <prefix>       Prefix for the Fragment
   --title      <title>        Title for the Fragment
   --desc       <description>  Description for the Fragment
 
-*****************************************************************
+================================================================================
 
 ```
 
-
 <br/>
 <br/>
-
 
 <hr/>
 
 <br/>
 
-- Write a lot of **Code** & use **VSCode**? 
+- Write a lot of **Code** & use **VSCode**?
 
 <br/>
 
 - Highly recommend checking out VSCode Code Snippets! check out their [official overview](https://code.visualstudio.com/docs/editor/userdefinedsnippets).
 
-
 <br/>
 
-- ***VSCode Extension*** coming soon that uses this same library behind the hood using **ffi** 
-
+- **_VSCode Extension_** coming soon that uses this same library behind the hood using **ffi**
 
 <br/>
 
@@ -109,7 +107,7 @@ Flags:
 - generate a Snippet using inlined text directly from your shell
 
 vsfragment -c 'import csv
-output_file_path = "output.csv"  
+output_file_path = "output.csv"
 with open(input_path, "r") as infile, open(out_path, "w", newline="") as outfile:
     reader = csv.reader(infile, delimiter="|")
     writer = csv.writer(outfile)
@@ -138,54 +136,45 @@ Successfully Generated Fragment from Inline Input
 }
 
 ============================================================================
-Paste fragment into the VSCode .code-snippets file and 
-begin typing Command + Space and the Prefix (gohttp...) 
+Paste fragment into the VSCode .code-snippets file and
+begin typing Command + Space and the Prefix (gohttp...)
 to paste the Snippet into your IDE.
 ```
 
-
-
 <hr/>
-
 
 <br/>
 
+built and profiled against
 
-built and profiled against 
-
-
-  
 - aarch64_macos
-  
-- x86_64_linux  
+- x86_64_linux
 
 - x86_64_windows
 
 <br/>
 
-
-## Build from Source 
+## Build from Source
 
 <br/>
 
-
 ```bash
 
-$ zig build  --summary all 
+$ zig build  --summary all
 
 
-builds 4 Releases : 
+builds 4 Releases :
 
-- release-safe 
-- release-fast 
+- release-safe
+- release-fast
 - release-small
 - debug
 
 cd zig-out/native/
 
-- vsfragment_safe  
-- vsfragment_fast  
-- vsfragment_debug   
+- vsfragment_safe
+- vsfragment_fast
+- vsfragment_debug
 - vsfragment_small
 
 
@@ -194,13 +183,13 @@ cd zig-out/native/
 
 # Unit Tests
 
-$ zig build test --summary all 
+$ zig build test --summary all
 
 # Integration Tests
 
-cd TESTS/INTEGRATION_TESTS && ./aarch64_macos.sh  
+cd TESTS/INTEGRATION_TESTS && ./aarch64_macos.sh
 cd TESTS/INTEGRATION_TESTS && ./x86_64_linux.sh
-cd TESTS/INTEGRATION_TESTS && ./x86_64_windows.sh  
+cd TESTS/INTEGRATION_TESTS && ./x86_64_windows.sh
 
 ```
 
@@ -210,7 +199,6 @@ cd TESTS/INTEGRATION_TESTS && ./x86_64_windows.sh
 
 Complete steps to setup the **Compiler** and **Language Server** are included.
 
-
 <br/>
 
 [Installing Zig](docs/installing_zig/steps.md)
@@ -218,7 +206,6 @@ Complete steps to setup the **Compiler** and **Language Server** are included.
 <br/>
 
 [Language Server Setup](docs/ide/lang_server.md)
-
 
 <br/>
 
@@ -249,7 +236,6 @@ pub fn main() !void {
 
 <br/>
 
-
 ```bash
 
 # Convenient , Simple , and Extremely Fast and Memory Efficient
@@ -263,8 +249,6 @@ vsfragments -f input.kt -o /path/to/kotlin.snippets -y
 
 ```
 
-
-
 <hr/>
 
  <br/>
@@ -275,27 +259,23 @@ Begin typing the shortcut & the fragment is pasted into your IDE
 
 Mac
 
-⌘ *cmd* `+` *space* `+`  *zig-app* 
+⌘ _cmd_ `+` _space_ `+` _zig-app_
 
  <br/>
 
-
-
 Windows
 
-*ctrl*   `+` *space* `+`  *zig-app*  
+_ctrl_ `+` _space_ `+` _zig-app_
 
 <hr/>
 
 <br/>
 
+Resulting Snippet that VSCode uses as a Zig Code Fragment
 
-Resulting Snippet that VSCode uses as a Zig Code Fragment 
-  
 <br/>
 
-```json
-
+````json
 {
   "prefix": "testparse",
   "body": [
@@ -313,12 +293,11 @@ Resulting Snippet that VSCode uses as a Zig Code Fragment
     "pub fn main() !void {",
     "\tstd.debug.print(\"{s}\\n\", .{\"Hello, world!\"});",
     "}",
-    "```",
+    "```"
   ],
-  "description":"Log output to console"
+  "description": "Log output to console"
 }
-
-```
+````
 
 <hr/>
 <br/>
@@ -328,12 +307,10 @@ Resulting Snippet that VSCode uses as a Zig Code Fragment
 <br/>
 
 ```bash
+$ zig build --summary all
 
-# build success on these latest master and stable
-
-$ zig version 0.11.0
-
-$ zig version 0.12.0-dev.1856+94c63f31f
+$ zig version 0.11.0  # stable
+$ zig version 0.12.0-dev.2059+42389cb9c # latest master
 
 
 Build Summary: 33/33 steps succeeded
@@ -377,44 +354,44 @@ install success
 
 <br/>
 
-
-
 ## Latest Test Run
 
 <br/>
 
 ```bash
 
-Build Summary: 23/23 steps succeeded; 40/40 tests passed
+$ zig build test --summary all
+
+Build Summary: 25/25 steps succeeded; 42/42 tests passed
 test success
-├─ run test 6 passed 174ms MaxRSS:5M
-│  └─ zig test Debug native success 4s MaxRSS:333M
-├─ run test 4 passed 171ms MaxRSS:2M
-│  └─ zig test Debug native success 3s MaxRSS:293M
-├─ run test 13 passed 61ms MaxRSS:1M
-│  └─ zig test Debug native success 3s MaxRSS:295M
-├─ run test 5 passed 97ms MaxRSS:2M
+├─ run test 6 passed 317ms MaxRSS:5M
+│  └─ zig test Debug native success 4s MaxRSS:342M
+├─ run test 4 passed 76ms MaxRSS:2M
+│  └─ zig test Debug native success 4s MaxRSS:288M
+├─ run test 13 passed 246ms MaxRSS:1M
+│  └─ zig test Debug native success 4s MaxRSS:278M
+├─ run test 5 passed 282ms MaxRSS:2M
 │  └─ zig test Debug native success 4s MaxRSS:325M
-├─ run test 2 passed 61ms MaxRSS:1M
-│  └─ zig test Debug native success 4s MaxRSS:290M
-├─ run test 1 passed 72ms MaxRSS:2M
-│  └─ zig test Debug native success 4s MaxRSS:296M
-├─ run test 1 passed 38ms MaxRSS:2M
+├─ run test 2 passed 213ms MaxRSS:1M
+│  └─ zig test Debug native success 4s MaxRSS:288M
+├─ run test 1 passed 59ms MaxRSS:2M
+│  └─ zig test Debug native success 3s MaxRSS:288M
+├─ run test 1 passed 95ms MaxRSS:2M
+│  └─ zig test Debug native success 4s MaxRSS:286M
+├─ run test 1 passed 59ms MaxRSS:2M
+│  └─ zig test Debug native success 4s MaxRSS:288M
+├─ run test 2 passed 132ms MaxRSS:4M
 │  └─ zig test Debug native success 4s MaxRSS:291M
-├─ run test 1 passed 135ms MaxRSS:2M
-│  └─ zig test Debug native success 3s MaxRSS:290M
-├─ run test 2 passed 106ms MaxRSS:4M
-│  └─ zig test Debug native success 4s MaxRSS:301M
-├─ run test 4 passed 143ms MaxRSS:7M
-│  └─ zig test Debug native success 4s MaxRSS:304M
-└─ run test 1 passed 97ms MaxRSS:2M
-   └─ zig test Debug native success 3s MaxRSS:288M
-   
+├─ run test 4 passed 182ms MaxRSS:7M
+│  └─ zig test Debug native success 4s MaxRSS:305M
+├─ run test 2 passed 112ms MaxRSS:1M
+│  └─ zig test Debug native success 4s MaxRSS:286M
+└─ run test 1 passed 182ms MaxRSS:2M
+   └─ zig test Debug native success 4s MaxRSS:303M
+
 ```
 
 <br/>
-
-
 
 ```bash
 COMPLETED RUNNING 9 INTEGRATION TESTS FOR aarch64_macos
@@ -425,11 +402,7 @@ COMPLETED RUNNING 9 INTEGRATION TESTS FOR x86_64_linux
 <hr/>
 <br/>
 
-
-[Foreign Function Interface](ffi_interface/ffi.d.ts) 
-
-
-
+[Foreign Function Interface](ffi_interface/ffi.d.ts)
 
 <hr>
 <br/>
