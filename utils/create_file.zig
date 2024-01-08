@@ -14,7 +14,7 @@ pub fn createSnippetsFileAndWrite(snippet: Snippet, output_file_path: []const u8
     try snippet.format("", formatOptions, file.writer());
 }
 
-pub fn handleInputFileNotExists(path: []const u8) void {
+pub fn handleFileNotExists(path: []const u8) void {
     print("\n\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n\x1b[31mInput File {s} does not exist at path.\x1b[0m\n", .{path});
     const INPUT_FILE_NOT_FOUND_MSG = constants.INPUT_FILE_NOT_FOUND_MSG;
     print("\n{s}\n", .{INPUT_FILE_NOT_FOUND_MSG});

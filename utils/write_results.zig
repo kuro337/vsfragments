@@ -3,7 +3,7 @@ const std = @import("std");
 const Snippet = @import("snippet").Snippet;
 const constants = @import("constants");
 
-pub fn printInlineFragmentBuffered(snippet: Snippet) !void {
+pub fn inlineBufferedIO(snippet: Snippet) !void {
     const out = std.io.getStdOut();
     var buf = std.io.bufferedWriter(out.writer());
     var w = buf.writer();
@@ -38,7 +38,7 @@ pub fn printInlineFragmentBuffered(snippet: Snippet) !void {
     try buf.flush();
 }
 
-pub fn printFragmentBufferedFileIO(snippet: Snippet) !void {
+pub fn writeBufferedIO(snippet: Snippet) !void {
     const out = std.io.getStdOut();
     var buf = std.io.bufferedWriter(out.writer());
 

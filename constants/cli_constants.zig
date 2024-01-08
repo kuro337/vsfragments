@@ -14,6 +14,7 @@ pub const usage_notes = "\x1b[1mAdditional Optional Flags:\x1b[0m";
 
 // INIT_MESSAGES
 pub const stdout_passed_snippet_file_output = "\x1b[90m*******************************************************************************\x1b[0m\n\x1b[97m Passed Snippet File and Output\x1b[0m\n\x1b[90m*******************************************************************************\x1b[0m";
+pub const stdout_flags_f_o = "\x1b[90m*******************************************************************************\x1b[0m\n\x1b[97m Passed Snippet File and Output\x1b[0m\n\x1b[90m*******************************************************************************\x1b[0m";
 pub const stdout_passed_inline_text = "\x1b[90m*******************************************************************************\x1b[0m\n\x1b[97m Passed Inline Snippet\x1b[0m\n\x1b[90m*******************************************************************************\x1b[0m";
 
 // EXECUTION_MESSAGES

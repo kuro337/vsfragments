@@ -9,9 +9,9 @@ const FlagEval = @import("flags").FlagEval;
 const parseCLI = @import("cli_parser").parseCLI;
 const checkFileExists = @import("modify_snippet").checkFileExists;
 
-const handleInputFileNotExists = @import("create_file").handleInputFileNotExists;
-const printInlineFragmentBuffered = @import("write_results").printInlineFragmentBuffered;
-const printFragmentBufferedFileIO = @import("write_results").printFragmentBufferedFileIO;
+const handleFileNotExists = @import("create_file").handleFileNotExists;
+const inlineBufferedIO = @import("write_results").inlineBufferedIO;
+const writeBufferedIO = @import("write_results").writeBufferedIO;
 
 pub fn main() !void {
     const allocator = std.heap.c_allocator;
@@ -24,11 +24,11 @@ pub fn main() !void {
         },
 
         FlagEval.file => {
-            try parseFileAndPrint(allocator, flags);
+            try parseFileStreamOutput(allocator, flags);
         },
 
         FlagEval.file_out => {
-            try parseFromInputFileWriteOutput(allocator, flags);
+            try parseInputWriteOutput(allocator, flags);
         },
 
         // => vsfragment -c '{text}'
@@ -39,54 +39,39 @@ pub fn main() !void {
             var snippet = try Snippet.createFromString(allocator, flags.code_str, true);
             snippet.setMetadata(flags.title, flags.prefix, flags.description, flags.confirmation, flags.force);
 
-            try printInlineFragmentBuffered(snippet);
+            try inlineBufferedIO(snippet);
         },
     }
 }
 
 // => vsfragment -f <file>
 
-pub fn parseFileAndPrint(allocator: std.mem.Allocator, user_args: Flags) !void {
-    if (!try checkFileExists(user_args.file_path)) {
-        return handleInputFileNotExists(user_args.file_path);
-    }
+pub fn parseFileStreamOutput(allocator: std.mem.Allocator, args: Flags) !void {
+    if (!try checkFileExists(args.file_path))
+        return handleFileNotExists(args.file_path);
 
-    var snippet = try Snippet.convertFileToSnippet(
-        allocator,
-        user_args.file_path,
-        false,
-    );
+    var snippet = try Snippet.convertFileToSnippet(allocator, args.file_path, false);
 
-    snippet.setMetadata(
-        user_args.title,
-        user_args.prefix,
-        user_args.description,
-        user_args.confirmation,
-        user_args.force,
-    );
+    snippet.setMetadata(args.title, args.prefix, args.description, args.confirmation, args.force);
 
-    try printFragmentBufferedFileIO(snippet);
+    try writeBufferedIO(snippet);
 }
 
 // => vsfragment -f <file> -o <file>
 
-pub fn parseFromInputFileWriteOutput(allocator: std.mem.Allocator, user_args: Flags) !void {
-    print("\n\n{s}", .{constants.stdout_passed_snippet_file_output});
+pub fn parseInputWriteOutput(allocator: std.mem.Allocator, args: Flags) !void {
+    print("\n\n{s}", .{constants.stdout_flags_f_o});
 
-    if (try checkFileExists(user_args.file_path) == false) {
-        return handleInputFileNotExists(user_args.file_path);
-    }
+    if (!try checkFileExists(args.file_path))
+        return handleFileNotExists(args.file_path);
 
-    // - read file & transform to snippet
-    var transformed_snippet = try Snippet.convertFileToSnippet(allocator, user_args.file_path, user_args.confirmation);
-    transformed_snippet.setMetadata(user_args.title, user_args.prefix, user_args.description, user_args.confirmation, user_args.force);
+    var snippet = try Snippet.convertFileToSnippet(allocator, args.file_path, args.confirmation);
+    snippet.setMetadata(args.title, args.prefix, args.description, args.confirmation, args.force);
 
-    _ = try printFragmentBufferedFileIO(transformed_snippet); //  - buffered stdout write w/ snippet
+    try writeBufferedIO(snippet); // - buffered stdout write w/ snippet
 
-    if (try checkFileExists(user_args.output_path)) { //          - update snippets output file
-        try transformed_snippet.appendSnippet(allocator, user_args.output_path, true);
-    } else {
-        print("\nCreating Snippets File {s} and adding Fragment.\n\n", .{user_args.output_path});
-        try transformed_snippet.writeSnippet(user_args.output_path, true);
+    switch (try checkFileExists(args.output_path)) {
+        true => try snippet.appendSnippet(allocator, args.output_path, true),
+        false => try snippet.writeSnippet(args.output_path, true),
     }
 }
