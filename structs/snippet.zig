@@ -473,8 +473,8 @@ pub const msg_outputfile_missing = "\x1b[37mTo create a new file at the specific
 test "Snippet convertDirectoryToSnippetFile Call" {
     const allocator = std.testing.allocator;
 
-    const dir_path = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup/input";
-    const output_file = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup/output/testing.code-snippets";
+    const dir_path = "../tests/mock/backup/input";
+    const output_file = "../tests/mock/backup/output/testing.code-snippets";
 
     const successul_files = try convertDirectoryToSnippetFile(allocator, dir_path, output_file);
 
@@ -486,7 +486,7 @@ test "Snippet convertDirectoryToSnippetFile Call" {
 test "Snippet File Convert" {
     const allocator = std.testing.allocator;
 
-    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
+    const file_name = "../tests/mock/testfile.txt";
 
     const snippet = try Snippet.convertFileToSnippet(allocator, file_name, true);
     const format_to_str = try std.fmt.allocPrint(allocator, "{s}", .{snippet});
@@ -503,8 +503,8 @@ test "Snippet File Convert" {
 test "Snippet Direct Write File Convert" {
     const allocator = std.testing.allocator;
 
-    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
-    const new_file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/snippetcreate.code-snippets";
+    const file_name = "../tests/mock/testfile.txt";
+    const new_file_name = "../tests/mock/snippetcreate.code-snippets";
 
     var snippet = try Snippet.convertFileToSnippet(allocator, file_name, true);
 
@@ -521,8 +521,8 @@ test "Snippet Direct Write File Convert" {
 test "Snippet Append Fragment to File" {
     const allocator = std.testing.allocator;
 
-    const file_name = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/testfile.txt";
-    const existing_file = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/snippetcreate.code-snippets";
+    const file_name = "../tests/mock/testfile.txt";
+    const existing_file = "../tests/mock/snippetcreate.code-snippets";
 
     var snippet = try Snippet.convertFileToSnippet(allocator, file_name, false);
 
