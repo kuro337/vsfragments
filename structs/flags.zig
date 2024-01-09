@@ -8,15 +8,18 @@ pub const FlagEval = enum(u8) {
     file,
     file_out,
     inline_code,
+    dir,
 };
 
 // use .? to coeerce type to remove Optional
 
 pub const Flags = struct {
     file_path: []const u8 = "",
+    dir_path: []const u8 = "",
     output_path: []const u8 = "",
     code_str: []const u8 = "",
     lang: []const u8 = "",
+    time: bool = false,
     help: bool = false,
     print: bool = false,
     title: []const u8 = "",
@@ -62,6 +65,12 @@ pub const Flags = struct {
             //            std.debug.print("-c passed, inline", .{});
 
             return FlagEval.inline_code;
+        }
+
+        if (!std.mem.eql(u8, self.dir_path, "")) {
+            //            std.debug.print("-c passed, inline", .{});
+
+            return FlagEval.dir;
         }
 
         return FlagEval.invalid;

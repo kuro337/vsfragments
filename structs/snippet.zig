@@ -1,6 +1,8 @@
 const std = @import("std");
 const print = std.debug.print;
 
+const getDateString = @import("time").getDateString;
+
 pub const Snippet = struct {
     title: []const u8,
     prefix: []const u8,
@@ -51,6 +53,32 @@ pub const Snippet = struct {
         if (force) {
             self.force = force;
         }
+    }
+
+    pub fn setSnippetTime(self: *Snippet, allocator: std.mem.Allocator) void {
+        const yyyy_mm_dd_hh_mm_ss = getDateString(allocator) catch |err| {
+            std.debug.print("Failed to get timestamp:\nError:\x1b[31m{}\x1b[0m\n\n", .{err});
+            return;
+        };
+
+        const new_len = self.title.len + yyyy_mm_dd_hh_mm_ss.len + 1;
+
+        const concat = allocator.alloc(u8, new_len) catch |err| {
+            std.debug.print("Failed to get timestamp:\nError:\x1b[31m{}\x1b[0m\n\n", .{err});
+            return;
+        };
+
+        const title_with_timestamp = std.fmt.bufPrint(concat, "{s} {s}", .{ self.title, yyyy_mm_dd_hh_mm_ss }) catch |err| {
+            std.debug.print("Failed to add timestamp to Title {s}\n{}\n", .{ self.title, err });
+
+            allocator.free(concat);
+            allocator.free(yyyy_mm_dd_hh_mm_ss);
+            return;
+        };
+
+        std.debug.print("{s}\n", .{title_with_timestamp});
+
+        self.title = title_with_timestamp;
     }
 
     pub fn destroy(self: *Snippet, allocator: std.mem.Allocator) void {
@@ -270,20 +298,36 @@ pub const Snippet = struct {
         };
     }
 
-    pub fn createFromString(allocator: std.mem.Allocator, str: []const u8, write_flag: bool) !Snippet {
-        const split_lines = try convertStringToStringSlice(allocator, str);
-        defer allocator.free(split_lines);
+    pub fn createFromString(allocator: std.mem.Allocator, code_str: []const u8, write_flag: bool) !Snippet {
+        var parsed_lines = std.ArrayList([]const u8).init(allocator);
+        defer parsed_lines.deinit();
 
-        if (write_flag == true) {
-            const out = std.io.getStdOut();
-            var buf = std.io.bufferedWriter(out.writer());
-            try buf.writer().print("Direct String Received in Snippet from JS-C: \n{s}\n", .{str});
-            try buf.flush();
+        var split = std.mem.splitScalar(u8, code_str, '\n');
+
+        while (split.next()) |line| {
+            const serialized_line = try parseLine(allocator, line);
+
+            try parsed_lines.append(serialized_line);
         }
 
-        const snippet = try Snippet.createFromLines(allocator, split_lines, write_flag);
+        const last_line = parsed_lines.pop();
 
-        return snippet;
+        const new_slice = try allocator.alloc(u8, last_line.len - 1);
+
+        @memcpy(new_slice, last_line[0 .. last_line.len - 1]);
+
+        defer allocator.free(last_line);
+
+        try parsed_lines.append(new_slice);
+
+        return Snippet{
+            .title = "VSCode Code Snippet",
+            .prefix = "prefix_insertSnippet",
+            .body = try parsed_lines.toOwnedSlice(),
+            .description = "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly.",
+            .create_flag = write_flag,
+            .force = false,
+        };
     }
 
     pub fn appendSnippetFilePassed(
@@ -391,10 +435,11 @@ fn checkIfUtf8(allocator: std.mem.Allocator, filePath: []const u8) !bool {
 // => convertDirectoryToSnippetFile (allocator, dir_path, output_file );
 
 pub fn convertDirectoryToSnippetFile(
-    allocator: std.mem.Allocator,
     dir_path: []const u8,
     output_file: []const u8,
 ) !usize {
+    const allocator = std.heap.c_allocator;
+
     const out = std.io.getStdOut();
     var buf = std.io.bufferedWriter(out.writer());
     var w = buf.writer();
@@ -472,11 +517,12 @@ pub const msg_outputfile_missing = "\x1b[37mTo create a new file at the specific
 
 test "Snippet convertDirectoryToSnippetFile Call" {
     const allocator = std.testing.allocator;
+    _ = allocator; // autofix
 
     const dir_path = "../tests/mock/backup/input";
     const output_file = "../tests/mock/backup/output/testing.code-snippets";
 
-    const successul_files = try convertDirectoryToSnippetFile(allocator, dir_path, output_file);
+    const successul_files = try convertDirectoryToSnippetFile(dir_path, output_file);
 
     try std.testing.expectEqual(5, successul_files);
 

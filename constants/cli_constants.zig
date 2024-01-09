@@ -14,8 +14,8 @@ pub const usage_notes = "\x1b[1mAdditional Optional Flags:\x1b[0m";
 
 // INIT_MESSAGES
 pub const stdout_passed_snippet_file_output = "\x1b[90m*******************************************************************************\x1b[0m\n\x1b[97m Passed Snippet File and Output\x1b[0m\n\x1b[90m*******************************************************************************\x1b[0m";
-pub const stdout_flags_f_o = "\x1b[90m*******************************************************************************\x1b[0m\n\x1b[97m Passed Snippet File and Output\x1b[0m\n\x1b[90m*******************************************************************************\x1b[0m";
-pub const stdout_passed_inline_text = "\x1b[90m*******************************************************************************\x1b[0m\n\x1b[97m Passed Inline Snippet\x1b[0m\n\x1b[90m*******************************************************************************\x1b[0m";
+pub const stdout_flags_f_o = "\n\n\x1b[90m*******************************************************************************\x1b[0m\n\x1b[97m Passed Snippet File and Output\x1b[0m\n\x1b[90m*******************************************************************************\x1b[0m";
+pub const stdout_inline = "\n\n\x1b[90m*******************************************************************************\x1b[0m\n\x1b[97m Passed Inline Snippet\x1b[0m\n\x1b[90m*******************************************************************************\x1b[0m\n";
 
 // EXECUTION_MESSAGES
 pub const output_file_not_exists = "\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n\x1b[31mOutput Path Snippets File does not exist.\x1b[0m\n";
@@ -113,20 +113,41 @@ pub const help_star_delimiter = "\x1b[90m***************************************
 pub const help_flags_usage_header = "\x1b[1mFlags:\x1b[0m";
 
 const help_flags_multiline =
-    \\  -f, --file    <file path>     Path to a VSCode Snippet File
-    \\  -o, --output <file_path>     Path to an Existing VSCode Snippets File or Empty File
+    \\  -f, --file   <file path>    Path to a VSCode Snippet File
+    \\  -o, --output <file_path>    Path to an Existing VSCode Snippets File or Empty File
     \\  -c, --code   <string...>    Code String to convert. Supports Multiline.
+    \\  -i, --dir    <dir_path>     Convert all files from a Folder to Snippets 
     \\  -l, --lang   <language>     Language of the Code String
     \\  -p, --print                 Print the Fragment to stdout
     \\  -h, --help                  Print this help message
+    \\  
+    \\  -y, --y                     File Creation Flag 
+    \\  -x, --force                 Use to Force Push Snippets to Existing Files  
     \\
     \\ Optional Flags: 
     \\
-    \\  --prefix      <prefix>        Prefix for the Fragment
+    \\  --prefix     <prefix>       Prefix for the Fragment
     \\  --title      <title>        Title for the Fragment
     \\  --desc       <description>  Description for the Fragment
     \\
+    \\  --time                      Add the Timestamp to the Generated Snippet
+    \\
 ;
+
+// \\-c, --code        <string>    Code stringing for direct input.
+//         \\-h, --help                    Display this help and exit.
+//         \\-f, --file         <string>    File path for input to be converted.
+//         \\-o, --output      <string>    File path for output.
+//         \\-i, --dir         <string>    File path for Full Directory.
+//         \\-l, --lang        <string>    Language specification.
+//         \\-r, --prefix       <string>    Optional prefix for snippet.
+//         \\-t, --title       <string>    Optional title for snippet.
+//         \\-d, --desc        <string>    Optional description for snippet.
+//         \\-p, --print                   Flag for printing output.
+//         \\-y, --y                       Confirmation Flag for creating the Snippets File.
+//         \\-x, --force                   Force Flag for Appending to Invalid Snippets Files.
+//         \\
+//         \\
 
 pub const HELP_MSG = newline ++ stdout_help_msg ++ double_newline ++
     help_flags_main_header ++ double_newline ++ double_newline ++
