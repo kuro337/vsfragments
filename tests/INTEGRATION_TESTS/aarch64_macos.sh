@@ -38,7 +38,7 @@ runtest
 echo "Running Empty Existing File - with no -y Flag passed to Create NEW FILE"
 runtest
 cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/bin/macos/aarch64/ReleaseFast && \
-./vsfragment -f /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/utf8_or_binary/validfile.txt -o /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/utf8_or_binary/doesnotexist.code-snippets
+./vsfragment -f /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/utf8_or_binary/validfile.txt -o /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/utf8_or_binary/doesnotexist.code-snippets -y
 echo "------------------------------------------------------------"
 
 runtest
@@ -83,6 +83,15 @@ cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/bin/macos/aarch64/R
 ./vsfragment -c '$transformline\"' --title "Snippet Title"  --prefix flowtest.set --desc "set custom description"
 echo "------------------------------------------------------------"
 
+
+runtest
+echo "Running Dir Convert"
+runtest
+
+cd /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/zig-out/bin/macos/aarch64/ReleaseFast && \
+./vsfragment --dir /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup/input -o /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup/output/testing.code-snippets
+
+rm /Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup/output/testing.code-snippets
 
 divider
 

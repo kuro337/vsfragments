@@ -170,3 +170,51 @@ test "Print Colors" {
 
     try std.testing.expect(true);
 }
+
+test "Success and Error Tracking with Unicode" {
+    const stdout_start_star_limiter = "\x1b[90m***********************\x1b[0m";
+    const bright_delimiter = "\x1b[97m***********************\x1b[0m";
+    const normal = "***********************";
+
+    const bold_green = "\x1b[1;32mThis text will be bold green\x1b[0m";
+
+    const red_err_text = "\x1b[31mThis text will be red error text.\x1b[0m";
+    const bold_white_text = "\x1b[1mThis text will be bold error text.\x1b[0m";
+    const bold_white = "\x1b[1m";
+    const warning_yellow = "\x1b[33mNot Recommended for Production\x1b[0m";
+    const warning_bright_yellow = "\x1b[93mWarning: Make sure no Memory Leaks Present.\x1b[0m";
+    const warning_bold_yellow = "\x1b[1;33mWARNING: Check Memory Usage..\x1b[0m";
+    const light_grey = "\x1b[37mThis text will be light grey\x1b[0m";
+    const bright_white = "\x1b[97mThis text will be bright white\x1b[0m";
+
+    const greenTick = "\x1b[1m\x1b[32m✓\x1b[0m";
+    const redCross = "\x1b[1m\x1b[31m✗\x1b[0m";
+
+    std.debug.print("\n{s}\n", .{stdout_start_star_limiter});
+    std.debug.print("{s}\n", .{normal});
+
+    const grey_delimiter = "\x1b[37m*************************************************************\x1b[0m";
+
+    const end = "\x1b[0m";
+    const bold = "\x1b[1m";
+    const yellow = "\x1b[93m";
+    const bright_green = "\x1b[92m";
+
+    std.debug.print("{s}\n", .{grey_delimiter});
+    std.debug.print(" {s} {s}binfile.o{s} ignored :{s} Non UTF data detected{s}\n", .{ redCross, bold, end, yellow, end });
+    std.debug.print(" {s} {s}validfile.txt{s} Successfully Transformed\n", .{ greenTick, bold, end });
+    std.debug.print("\n{s}4{s} Snippets added to file {s}outputfile.code-snippets{s}\n", .{ bold_white, end, bright_green, end });
+    std.debug.print("{s}\n", .{grey_delimiter});
+
+    std.debug.print("{s}\n", .{bright_delimiter});
+
+    std.debug.print("{s}\n", .{bold_green});
+    std.debug.print("{s}\n", .{red_err_text});
+    std.debug.print("{s}\n", .{bold_white_text});
+    std.debug.print("{s}\n", .{warning_yellow});
+    std.debug.print("{s}\n", .{warning_bright_yellow});
+    std.debug.print("{s}\n", .{warning_bold_yellow});
+    std.debug.print("{s}\n", .{light_grey});
+    std.debug.print("{s}\n", .{bright_white});
+    std.debug.print("{s}\n", .{stdout_start_star_limiter});
+}

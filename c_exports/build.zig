@@ -54,8 +54,8 @@ pub fn build(b: *std.Build) !void {
 }
 
 fn addCommonModules(b: *Build, exe: *CompileStep) void {
-    const time = b.addModule("time", .{ .root_source_file = .{ .path = "../utils/time/timestamp.zig" } });
-    const snippet = b.addModule("snippet", .{ .root_source_file = .{ .path = "../structs/snippet.zig" }, .imports = &.{.{ .name = "time", .module = time }} });
+    const timestamp = b.addModule("timestamp", .{ .root_source_file = .{ .path = "../utils/time/timestamp.zig" } });
+    const snippet = b.addModule("snippet", .{ .root_source_file = .{ .path = "../structs/snippet.zig" }, .imports = &.{.{ .name = "timestamp", .module = timestamp }} });
     const read_lines = b.addModule("read_lines", .{ .root_source_file = .{ .path = "../utils/read_lines.zig" } });
     const memory_mgmt = b.addModule("memory_mgmt", .{ .root_source_file = .{ .path = "../utils/memory_mgmt.zig" } });
     const constants = b.addModule("constants", .{ .root_source_file = .{ .path = "../constants/cli_constants.zig" } });

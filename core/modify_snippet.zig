@@ -3,6 +3,24 @@ const print = std.debug.print;
 
 const checkMemoryLeaks = @import("memory_mgmt").checkMemoryLeaks;
 const Snippet = @import("snippet").Snippet;
+const constants = @import("constants");
+
+pub fn validateFile(allocator: std.mem.Allocator, file_path: []const u8) !bool {
+    if (!try checkFileExists(file_path))
+        handleFileNotExists(file_path);
+
+    if (!try checkIfUtf8(allocator, file_path))
+        print(" {s} {s}{s}{s} ignored :{s} Non UTF data detected{s}\n", .{ constants.redCross, constants.bold, file_path, constants.end, constants.yellow, constants.yellow });
+
+    return true;
+}
+
+pub fn handleFileNotExists(path: []const u8) void {
+    print("\n\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n\x1b[31mInput File {s} does not exist at path.\x1b[0m\n", .{path});
+    const INPUT_FILE_NOT_FOUND_MSG = constants.INPUT_FILE_NOT_FOUND_MSG;
+    print("\n{s}\n", .{INPUT_FILE_NOT_FOUND_MSG});
+    return;
+}
 
 pub fn checkFileExists(file_path: []const u8) !bool {
     if (std.fs.cwd().openFile(file_path, .{})) |file| {
@@ -14,6 +32,25 @@ pub fn checkFileExists(file_path: []const u8) !bool {
         },
         else => |leftover_err| return leftover_err,
     }
+}
+
+fn checkIfUtf8(allocator: std.mem.Allocator, filePath: []const u8) !bool {
+    const file = try std.fs.cwd().openFile(filePath, .{});
+    defer file.close();
+
+    var lines_to_read: u64 = 50;
+
+    const bufferSize = try file.getEndPos();
+    if (bufferSize == 0) return false;
+
+    if (bufferSize < lines_to_read) lines_to_read = bufferSize;
+
+    const data = try allocator.alloc(u8, lines_to_read);
+    defer allocator.free(data);
+
+    _ = try file.read(data[0..lines_to_read]); // Read up to 50 bytes from the file
+
+    return std.unicode.utf8ValidateSlice(data);
 }
 
 pub fn findPositionToInsert(allocator: std.mem.Allocator, file_path: []const u8) !usize {

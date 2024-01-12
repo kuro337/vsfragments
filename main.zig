@@ -6,13 +6,14 @@ const Snippet = @import("snippet").Snippet;
 const Flags = @import("flags").Flags;
 const FlagEval = @import("flags").FlagEval;
 
-const parseCLI = @import("cli_parser").parseCLI;
+const validateFile = @import("modify_snippet").validateFile;
 const checkFileExists = @import("modify_snippet").checkFileExists;
-const transformDir = @import("snippet").convertDirectoryToSnippetFile;
-
 const handleFileNotExists = @import("create_file").handleFileNotExists;
 const inlineBufferedIO = @import("write_results").inlineBufferedIO;
 const writeBufferedIO = @import("write_results").writeBufferedIO;
+const transformDir = @import("snippet").transformDir;
+
+const parseCLI = @import("cli_parser").parseCLI;
 
 pub fn main() !void {
     const allocator = std.heap.c_allocator;
@@ -35,7 +36,7 @@ pub fn main() !void {
         FlagEval.inline_code => { // => vsfragment -c '{text}'
             print("{s}", .{constants.stdout_inline});
             var snippet = try Snippet.createFromString(allocator, flags.code_str, true);
-            snippet.setMetadata(flags.title, flags.prefix, flags.description, flags.confirmation, flags.force);
+            snippet.setMetadata(flags.title, flags.prefix, flags.description, flags.confirmation, flags.force, flags.time);
             try inlineBufferedIO(snippet);
         },
 
@@ -46,11 +47,11 @@ pub fn main() !void {
 }
 
 pub fn parseFileStreamOutput(allocator: std.mem.Allocator, args: Flags) !void {
-    if (!try checkFileExists(args.file_path))
-        return handleFileNotExists(args.file_path);
+    if (!try validateFile(allocator, args.file_path))
+        return;
 
     var snippet = try Snippet.convertFileToSnippet(allocator, args.file_path, false);
-    snippet.setMetadata(args.title, args.prefix, args.description, args.confirmation, args.force);
+    snippet.setMetadata(args.title, args.prefix, args.description, args.confirmation, args.force, args.time);
 
     try writeBufferedIO(snippet);
 }
@@ -58,11 +59,11 @@ pub fn parseFileStreamOutput(allocator: std.mem.Allocator, args: Flags) !void {
 pub fn parseInputWriteOutput(allocator: std.mem.Allocator, args: Flags) !void {
     print("{s}", .{constants.stdout_flags_f_o});
 
-    if (!try checkFileExists(args.file_path))
-        return handleFileNotExists(args.file_path);
+    if (!try validateFile(allocator, args.file_path))
+        return;
 
     var snippet = try Snippet.convertFileToSnippet(allocator, args.file_path, args.confirmation);
-    snippet.setMetadata(args.title, args.prefix, args.description, args.confirmation, args.force);
+    snippet.setMetadata(args.title, args.prefix, args.description, args.confirmation, args.force, args.time);
 
     try writeBufferedIO(snippet); // - buffer snippet stdout
 

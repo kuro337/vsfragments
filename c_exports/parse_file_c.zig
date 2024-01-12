@@ -2,8 +2,8 @@ const std = @import("std");
 const print = std.debug.print;
 
 const Snippet = @import("snippet").Snippet;
-const convertDirectoryToSnippetFile = @import("snippet").convertDirectoryToSnippetFile;
-
+const transformDir = @import("snippet").transformDir;
+const validateFile = @import("modify_snippet").validateFile;
 const checkFileExists = @import("modify_snippet").checkFileExists;
 const handleFileNotExists = @import("create_file").handleFileNotExists;
 const writeBufferedIO = @import("write_results").writeBufferedIO;
@@ -67,7 +67,7 @@ export fn createSnippetWithMetadata(file_path: [*:0]const u8, title: [*:0]const 
 
     // so it adds a surrounding { }
 
-    snippet.setMetadata(zig_title, zig_prefix, zig_description, new_snippet_file, false);
+    snippet.setMetadata(zig_title, zig_prefix, zig_description, new_snippet_file, false, true);
 
     const format_to_str = std.fmt.allocPrintZ(allocator, "{s}", .{snippet}) catch |err| {
         std.debug.panic("Error formatting snippet: {}\n", .{err});
@@ -85,9 +85,7 @@ export fn createSnippetWithMetadata(file_path: [*:0]const u8, title: [*:0]const 
 // -> convertDirToSnippet(dir_path:string , output_filename:string) (Node)
 
 export fn convertDirToSnippet(dir_path: [*:0]const u8, output_file: [*:0]const u8) c_int {
-    const allocator = std.heap.c_allocator;
-
-    const num_files_converted = convertDirectoryToSnippetFile(allocator, std.mem.span(dir_path), std.mem.span(output_file)) catch |err| {
+    const num_files_converted = transformDir(std.mem.span(dir_path), std.mem.span(output_file)) catch |err| {
         std.debug.panic("Failed Snippet.convertFileToSnippet({s},{s}):\nError:\x1b[31m{}\x1b[0m\n\n", .{ dir_path, output_file, err });
     };
 
@@ -118,13 +116,12 @@ export fn parseFileWriteOutput(
 
     var status_code: c_int = 0;
 
-    const input_exists = checkFileExists(zig_input_file) catch |err| {
+    const input_exists_or_valid = validateFile(allocator, zig_input_file) catch |err| {
         std.debug.print("Error Happened Checking for File {s}\n{}", .{ zig_input_file, err });
         return status_code;
     };
 
-    if (!input_exists) {
-        handleFileNotExists(zig_input_file);
+    if (!input_exists_or_valid) {
         status_code = 1;
         return status_code;
     }
@@ -148,8 +145,7 @@ export fn parseFileWriteOutput(
 
     defer snippet.destroy(allocator);
 
-    snippet.setMetadata(zig_title, zig_prefix, zig_description, create, force);
-    snippet.setSnippetTime(allocator);
+    snippet.setMetadata(zig_title, zig_prefix, zig_description, create, force, true);
 
     if (print_out) writeBufferedIO(snippet) catch |err| {
         std.debug.print("Could not Write to stdout\n{}\n", .{err});
@@ -203,15 +199,12 @@ export fn parseStringWriteToFile(
 
     defer snippet.destroy(allocator);
 
-    snippet.setMetadata(zig_title, zig_prefix, zig_description, create, force);
-    snippet.setSnippetTime(allocator);
+    snippet.setMetadata(zig_title, zig_prefix, zig_description, create, force, true);
 
     const format_to_str = std.fmt.allocPrintZ(allocator, "{s}", .{snippet}) catch |err| {
         std.debug.panic("Error formatting snippet: {}\n", .{err});
         false;
     };
-
-    // const output_exists = checkFileExists(zig_output_file)
 
     const output_exists = checkFileExists(zig_output_file) catch |err| blk: {
         std.debug.print("Error Happened Checking for File {s}\n{}", .{ zig_output_file, err });
@@ -247,12 +240,13 @@ pub fn parseFileReturnSnippet(allocator: std.mem.Allocator, input_file_path: []c
 
     // 1. Read File -> Write Snippet to stdout
 
-    const input_file_exists = try checkFileExists(input_file_path);
+    if (!try validateFile(allocator, input_file_path))
+        return error.AccessDenied;
 
-    if (input_file_exists == false) {
-        handleFileNotExists(input_file_path);
-        return error.FileNotFound;
-    }
+    // if (input_file_exists == false) {
+    //     handleFileNotExists(input_file_path);
+    //     return error.FileNotFound;
+    // }
 
     // 2. Print Snippet
 

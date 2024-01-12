@@ -1,10 +1,10 @@
+const timestamp = @This();
+
 const std = @import("std");
 const string = []const u8;
 const time = @import("time.zig");
 
-// credit to nektro - https://github.com/nektro/zig-time/tree/master Meghan Denny
-
-pub fn getDateString(allocator: std.mem.Allocator) ![]const u8 {
+pub fn getTimestampString(allocator: std.mem.Allocator) ![]const u8 {
     const instant = time.DateTime.now();
     const fmt = "YYYY-MM-DD HH:mm:ss";
     const formattedDateTime = try instant.formatAlloc(allocator, fmt);
@@ -23,6 +23,8 @@ test "Simple Time Print" {
 
     std.log.info("Formatted Date and Time: {s}", .{formattedDateTime});
 }
+
+// credit to nektro - https://github.com/nektro/zig-time/tree/master Meghan Denny
 
 fn harness(comptime seed: u64, comptime expects: []const [2]string) void {
     for (0..expects.len) |i| {

@@ -1,7 +1,8 @@
 const std = @import("std");
 const print = std.debug.print;
+const timestamp = @import("timestamp");
 
-const getDateString = @import("time").getDateString;
+const vsfragment = @This();
 
 pub const Snippet = struct {
     title: []const u8,
@@ -37,10 +38,26 @@ pub const Snippet = struct {
         description: []const u8,
         create_flag: bool,
         force: bool,
+        time: bool,
     ) void {
-        if (title.len > 1) {
+        if (time and title.len > 1) {
+            const allocator = std.heap.c_allocator;
+            const time_str = timestamp.getTimestampString(allocator) catch |err| blk: {
+                std.debug.print("Failed to get timestamp:\nError:\x1b[31m{}\x1b[0m\n\n", .{err});
+                break :blk title;
+            };
+
+            self.title = std.fmt.allocPrintZ(allocator, "{s} {s}", .{ title, time_str }) catch |err| blk: {
+                std.debug.print("Error Creating Title with Time\nErr:{}\n", .{err});
+                allocator.free(time_str);
+                break :blk title;
+            };
+        } else if (title.len > 1) {
             self.title = title;
+        } else if (time) {
+            self.setSnippetTime(std.heap.c_allocator);
         }
+
         if (prefix.len > 1) {
             self.prefix = prefix;
         }
@@ -56,7 +73,7 @@ pub const Snippet = struct {
     }
 
     pub fn setSnippetTime(self: *Snippet, allocator: std.mem.Allocator) void {
-        const yyyy_mm_dd_hh_mm_ss = getDateString(allocator) catch |err| {
+        const yyyy_mm_dd_hh_mm_ss = timestamp.getTimestampString(allocator) catch |err| {
             std.debug.print("Failed to get timestamp:\nError:\x1b[31m{}\x1b[0m\n\n", .{err});
             return;
         };
@@ -434,18 +451,27 @@ fn checkIfUtf8(allocator: std.mem.Allocator, filePath: []const u8) !bool {
 
 // => convertDirectoryToSnippetFile (allocator, dir_path, output_file );
 
-pub fn convertDirectoryToSnippetFile(
+pub fn transformDir(
     dir_path: []const u8,
     output_file: []const u8,
 ) !usize {
     const allocator = std.heap.c_allocator;
+
+    const grey_delimiter = "\x1b[37m*************************************************************\x1b[0m";
+    const redCross = "\x1b[1m\x1b[31m✗\x1b[0m";
+    const greenTick = "\x1b[1m\x1b[32m✓\x1b[0m";
+    const end = "\x1b[0m";
+    const bold = "\x1b[1m";
+    const yellow = "\x1b[93m";
+    const bright_green = "\x1b[92m";
+    const bold_white = "\x1b[1m";
 
     const out = std.io.getStdOut();
     var buf = std.io.bufferedWriter(out.writer());
     var w = buf.writer();
 
     if (try checkIfPathExists(output_file) == true) {
-        try w.print("File {s} Already Exists. Must pass a new File.\n", .{output_file});
+        try w.print("\nFile {s}{s}{s} Already Exists. {s}\nMust pass a new File.{s}\n", .{ bold_white, output_file, end, yellow, end });
         try buf.flush();
         return 0;
     }
@@ -472,6 +498,8 @@ pub fn convertDirectoryToSnippetFile(
 
     var isFirstSnippet = true;
 
+    try w.print("{s}\n", .{grey_delimiter});
+
     while (try it.next()) |entry| {
         if (entry.kind != std.fs.File.Kind.file) continue;
 
@@ -479,8 +507,7 @@ pub fn convertDirectoryToSnippetFile(
         defer allocator.free(dir_read_file);
 
         if (try checkIfUtf8(allocator, dir_read_file) == false) {
-            try w.print("Non UTF Data Detected in File (non serializable):{s}\n", .{entry.name});
-            try buf.flush();
+            try w.print(" {s} {s}{s}{s} ignored :{s} Non UTF data detected{s}\n", .{ redCross, bold, entry.name, end, yellow, end });
             continue;
         }
 
@@ -502,10 +529,17 @@ pub fn convertDirectoryToSnippetFile(
 
         try snippet.appendSnippetFilePassed(new_file, false);
 
+        try w.print(" {s} {s}{s}{s} Successfully Transformed\n", .{ greenTick, bold, entry.name, end });
+
         i += 1;
     }
 
     _ = try new_file.write("}");
+
+    try w.print("\n{s}{d}{s} Snippets added to file {s}{s}{s}\n", .{ bold_white, i, end, bright_green, output_file, end });
+    try w.print("{s}\n", .{grey_delimiter});
+
+    try buf.flush();
 
     return i;
 }
@@ -516,13 +550,10 @@ pub const msg_outputfile_missing = "\x1b[37mTo create a new file at the specific
 // ******* snippet tests
 
 test "Snippet convertDirectoryToSnippetFile Call" {
-    const allocator = std.testing.allocator;
-    _ = allocator; // autofix
-
     const dir_path = "../tests/mock/backup/input";
     const output_file = "../tests/mock/backup/output/testing.code-snippets";
 
-    const successul_files = try convertDirectoryToSnippetFile(dir_path, output_file);
+    const successul_files = try transformDir(dir_path, output_file);
 
     try std.testing.expectEqual(5, successul_files);
 

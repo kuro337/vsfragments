@@ -30,15 +30,6 @@ pub const Flags = struct {
 
     pub fn evalCmds(self: Flags) FlagEval {
 
-        // passed no file or direct code
-
-        if (std.mem.eql(u8, self.file_path, "") and
-            std.mem.eql(u8, self.code_str, ""))
-        {
-            //            std.debug.print("no -f or -c passed , invalid", .{});
-            return FlagEval.invalid;
-        }
-
         // passed file but no output
 
         if (!std.mem.eql(u8, self.file_path, "") and
@@ -67,10 +58,21 @@ pub const Flags = struct {
             return FlagEval.inline_code;
         }
 
-        if (!std.mem.eql(u8, self.dir_path, "")) {
+        if (!std.mem.eql(u8, self.dir_path, "") and
+            !std.mem.eql(u8, self.output_path, ""))
+        {
             //            std.debug.print("-c passed, inline", .{});
 
             return FlagEval.dir;
+        }
+
+        // passed no file or direct code
+
+        if (std.mem.eql(u8, self.file_path, "") and
+            std.mem.eql(u8, self.code_str, ""))
+        {
+            //            std.debug.print("no -f or -c passed , invalid", .{});
+            return FlagEval.invalid;
         }
 
         return FlagEval.invalid;
@@ -115,6 +117,7 @@ pub const Flags = struct {
     ) !void {
         try writer.print("Flags:\n", .{});
         if (self.file_path.len > 1) try writer.print("  File Path: {s}\n", .{self.file_path});
+        if (self.dir_path.len > 1) try writer.print("  Dir Path: {s}\n", .{self.dir_path});
         if (self.output_path.len > 1) try writer.print("  Output Path: {s}\n", .{self.output_path});
         if (self.lang.len > 1) try writer.print("  Language: {s}\n", .{self.lang});
         try writer.print("  Print: {}\n", .{self.print});

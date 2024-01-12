@@ -136,7 +136,7 @@ test "Snippet File Parsing C NAPI Tests" {
     //var snippet = try Snippet.transformFileToSnippet(allocator, INPUT_FILE_PATH_METADATA);
     var snippet = try Snippet.convertFileToSnippet(allocator, INPUT_FILE_PATH_METADATA, false);
 
-    snippet.setMetadata(title, prefix, description, false, false);
+    snippet.setMetadata(title, prefix, description, false, false, false);
 
     // Returning a C String and Zig String Directly from the Struct
     const formatted_c_str = try std.fmt.allocPrintZ(allocator, "{s}", .{snippet});
