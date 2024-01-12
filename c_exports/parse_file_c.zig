@@ -70,8 +70,6 @@ export fn createSnippetWithMetadata(file_path: [*:0]const u8, title: [*:0]const 
         return "";
     };
 
-    // so it adds a surrounding { }
-
     snippet.setMetadata(zig_title, zig_prefix, zig_description, new_snippet_file, false, true);
 
     const format_to_str = std.fmt.allocPrintZ(allocator, "{s}", .{snippet}) catch |err| {
@@ -228,14 +226,11 @@ export fn parseStringWriteToFile(
         true => {
             snippet.appendSnippet(allocator, zig_output_file, print_out) catch |err| {
                 std.debug.print("Error During Snippet Append for Output:{s}\n{}", .{ zig_output_file, err });
-
-                //         return format_to_str.ptr;
             };
         },
         false => {
             snippet.writeSnippet(zig_output_file, print_out) catch |err| {
                 std.debug.print("Failed Write Snippet\n:\nError:\x1b[31m{}\x1b[0m\n\n", .{err});
-                //           return format_to_str.ptr;
             };
         },
     }
@@ -251,11 +246,6 @@ pub fn parseFileReturnSnippet(allocator: std.mem.Allocator, input_file_path: []c
     if (!try validateFile(allocator, input_file_path))
         return error.AccessDenied;
 
-    // if (input_file_exists == false) {
-    //     handleFileNotExists(input_file_path);
-    //     return error.FileNotFound;
-    // }
-
     // 2. Print Snippet
 
     const transformed_snippet = try Snippet.convertFileToSnippet(allocator, input_file_path, false);
@@ -266,12 +256,9 @@ pub fn parseFileReturnSnippet(allocator: std.mem.Allocator, input_file_path: []c
 }
 
 test "Snippet Convert Input File and Write Output File C Test" {
-    const allocator = std.testing.allocator;
-    _ = allocator; // autofix
+    const input_file = "../tests/mock/backup/control_char_data/contains_controlchars.txt";
 
-    const input_file = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup/control_char_data/contains_controlchars.txt";
-
-    const output_file = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/backup/output/cnapi_writesnippet.json";
+    const output_file = "../tests/mock/backup/output/cnapi_writesnippet.json";
 
     const result = parseFileWriteOutput(
         input_file,
@@ -290,26 +277,15 @@ test "Snippet Convert Input File and Write Output File C Test" {
 }
 
 test "Snippet Dir Convert C Test" {
-    const allocator = std.testing.allocator;
-    _ = allocator; // autofix
-
     const dir_path = "../tests/mock/backup/input";
     const output_file = "../tests/mock/backup/output/testing.code-snippets";
 
     const successul_files = convertDirToSnippet(dir_path, output_file);
 
     try std.testing.expectEqual(5, successul_files);
-
-    //   try std.fs.cwd().deleteFile(output_file);
 }
-
-// Passing String directly to Snippet Struct
 
 export fn processStringFromCJS(input: [*c]const u8) void {
     const inputString = std.mem.span(input);
     std.debug.print("String received in Zig from JS-C: {s}\n", .{inputString});
 }
-
-// /Users/kuro/Library/Application Support/Code/User/snippets/newsnips
-
-// /Users/kuro/Library/Application Support/Code/User/snippets/c.json
