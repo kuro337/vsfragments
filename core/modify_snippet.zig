@@ -6,20 +6,27 @@ const Snippet = @import("snippet").Snippet;
 const constants = @import("constants");
 
 pub fn validateFile(allocator: std.mem.Allocator, file_path: []const u8) !bool {
-    if (!try checkFileExists(file_path))
+    if (!try checkFileExists(file_path)) {
         handleFileNotExists(file_path);
+        return false;
+    }
 
-    if (!try checkIfUtf8(allocator, file_path))
-        print(" {s} {s}{s}{s} ignored :{s} Non UTF data detected{s}\n", .{ constants.redCross, constants.bold, file_path, constants.end, constants.yellow, constants.yellow });
+    if (!try checkIfUtf8(allocator, file_path)) {
+        const stdout = std.io.getStdOut().writer();
+        try stdout.print(" {s} {s}{s}{s} ignored :{s} Non UTF data detected{s}\n", .{ constants.redCross, constants.bold, file_path, constants.end, constants.yellow, constants.yellow });
+
+        return false;
+    }
 
     return true;
 }
 
 pub fn handleFileNotExists(path: []const u8) void {
-    print("\n\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n\x1b[31mInput File {s} does not exist at path.\x1b[0m\n", .{path});
-    const INPUT_FILE_NOT_FOUND_MSG = constants.INPUT_FILE_NOT_FOUND_MSG;
-    print("\n{s}\n", .{INPUT_FILE_NOT_FOUND_MSG});
-    return;
+    const stdout = std.io.getStdOut().writer();
+
+    stdout.print("\n\x1b[1m\x1b[31mFile Not Found\x1b[0m\n\n\x1b[31mInput File {s} does not exist at path.\x1b[0m\n", .{path}) catch unreachable;
+
+    stdout.print("\n{s}\n", .{constants.INPUT_FILE_NOT_FOUND_MSG}) catch unreachable;
 }
 
 pub fn checkFileExists(file_path: []const u8) !bool {

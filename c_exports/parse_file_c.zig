@@ -18,13 +18,15 @@ export fn parseFileGetSnippet(file_path: [*c]const u8, new_snippet_file: bool, p
     const zig_file_path = std.mem.span(file_path);
 
     var snippet = parseFileReturnSnippet(allocator, zig_file_path, print_out) catch |err| {
-        std.debug.panic("Failed to Parse Text from File {s}\nErr:{}", .{ zig_file_path, err });
+        std.log.err("Failed to Parse Text from File {s}\nErr:{}", .{ zig_file_path, err });
+        return "";
     };
 
     snippet.create_flag = new_snippet_file;
 
     const format_to_str = std.fmt.allocPrintZ(allocator, "{s}", .{snippet}) catch |err| {
-        std.debug.panic("Error formatting snippet: {}\n", .{err});
+        std.log.err("Error formatting snippet: {}\n", .{err});
+        return "";
     };
 
     return format_to_str.ptr;
@@ -38,11 +40,13 @@ export fn parseSnippetFromString(lines: [*c]const u8) [*:0]const u8 {
     const allocator = std.heap.c_allocator;
 
     const snippet = Snippet.createFromString(allocator, std.mem.span(lines), false) catch |err| {
-        std.debug.panic("Failed to Parse Text from Direct String {s}\nErr:{}", .{ lines, err });
+        std.log.err("Failed to Parse Text from Direct String {s}\nErr:{}", .{ lines, err });
+        return "";
     };
 
     const format_to_str = std.fmt.allocPrintZ(allocator, "{s}", .{snippet}) catch |err| {
-        std.debug.panic("Error formatting snippet: {}\n", .{err});
+        std.log.err("Error formatting snippet: {}\n", .{err});
+        return "";
     };
 
     return format_to_str.ptr;
@@ -62,7 +66,8 @@ export fn createSnippetWithMetadata(file_path: [*:0]const u8, title: [*:0]const 
     const zig_description = std.mem.span(description);
 
     var snippet = parseFileReturnSnippet(allocator, zig_file_path, false) catch |err| {
-        std.debug.panic("Failed to Parse Text from File {s}\nErr:{}", .{ zig_file_path, err });
+        std.log.err("Failed to Parse Text from File {s}\nErr:{}", .{ zig_file_path, err });
+        return "";
     };
 
     // so it adds a surrounding { }
@@ -70,11 +75,13 @@ export fn createSnippetWithMetadata(file_path: [*:0]const u8, title: [*:0]const 
     snippet.setMetadata(zig_title, zig_prefix, zig_description, new_snippet_file, false, true);
 
     const format_to_str = std.fmt.allocPrintZ(allocator, "{s}", .{snippet}) catch |err| {
-        std.debug.panic("Error formatting snippet: {}\n", .{err});
+        std.log.err("Error formatting snippet: {}\n", .{err});
+        return "";
     };
 
     if (print_out == true) writeBufferedIO(snippet) catch |err| {
-        std.debug.panic("Could Not Print Snippet: {}\n", .{err});
+        std.log.err("Could Not Print Snippet: {}\n", .{err});
+        return "";
     };
 
     return format_to_str.ptr;
@@ -86,7 +93,8 @@ export fn createSnippetWithMetadata(file_path: [*:0]const u8, title: [*:0]const 
 
 export fn convertDirToSnippet(dir_path: [*:0]const u8, output_file: [*:0]const u8) c_int {
     const num_files_converted = transformDir(std.mem.span(dir_path), std.mem.span(output_file)) catch |err| {
-        std.debug.panic("Failed Snippet.convertFileToSnippet({s},{s}):\nError:\x1b[31m{}\x1b[0m\n\n", .{ dir_path, output_file, err });
+        std.log.err("Failed Snippet.convertFileToSnippet({s},{s}):\nError:\x1b[31m{}\x1b[0m\n\n", .{ dir_path, output_file, err });
+        return 0;
     };
 
     return @intCast(num_files_converted);
@@ -149,7 +157,6 @@ export fn parseFileWriteOutput(
 
     if (print_out) writeBufferedIO(snippet) catch |err| {
         std.debug.print("Could not Write to stdout\n{}\n", .{err});
-        // - buffered stdout write w/ snippet
     };
 
     switch (output_exists) {
@@ -194,7 +201,8 @@ export fn parseStringWriteToFile(
     const allocator = std.heap.c_allocator;
 
     var snippet = Snippet.createFromString(allocator, std.mem.span(lines), false) catch |err| {
-        std.debug.panic("Failed to Parse Text from Direct String {s}\nErr:{}", .{ lines, err });
+        std.log.err("Failed to Parse Text from Direct String {s}\nErr:{}", .{ lines, err });
+        return "";
     };
 
     defer snippet.destroy(allocator);
@@ -202,8 +210,8 @@ export fn parseStringWriteToFile(
     snippet.setMetadata(zig_title, zig_prefix, zig_description, create, force, true);
 
     const format_to_str = std.fmt.allocPrintZ(allocator, "{s}", .{snippet}) catch |err| {
-        std.debug.panic("Error formatting snippet: {}\n", .{err});
-        false;
+        std.log.err("Error formatting snippet: {}\n", .{err});
+        return "";
     };
 
     const output_exists = checkFileExists(zig_output_file) catch |err| blk: {
