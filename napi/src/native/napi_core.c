@@ -14,12 +14,12 @@ createSnippetWithMetadata(const char *file_path, const char *title,
                           const char *prefix, const char *description,
                           bool new_snippet_file, bool print_out);
 
-extern int *convertDirToSnippet(const char *dir_path, const char *output_file);
+extern int convertDirToSnippet(const char *dir_path, const char *output_file);
 
-extern int *parseFileWriteOutput(const char *input_file,
-                                 const char *output_file, const char *title,
-                                 const char *prefix, const char *description,
-                                 bool create, bool force, bool print);
+extern int parseFileWriteOutput(const char *input_file, const char *output_file,
+                                const char *title, const char *prefix,
+                                const char *description, bool create,
+                                bool force, bool print);
 
 extern char *parseStringWriteToFile(const char *str, const char *output_file,
                                     const char *title, const char *prefix,
@@ -307,8 +307,8 @@ napi_value ZigParseFileWriteOutput(napi_env env, napi_callback_info info) {
   bool print = extractBoolArg(env, argv[7]);
 
   // Call the Zig function
-  int result = *parseFileWriteOutput(input_file, output_file, title, prefix,
-                                     description, create, force, print);
+  int result = parseFileWriteOutput(input_file, output_file, title, prefix,
+                                    description, create, force, print);
 
   // Free allocated strings
   free(input_file);
@@ -327,6 +327,8 @@ napi_value ZigParseFileWriteOutput(napi_env env, napi_callback_info info) {
 
   return js_result;
 }
+// Free allocated strings (dont free as we will cause a segfault in the caller
+// then)
 
 // ==================================================
 // NODE_API WRAPPER => convertDirToSnippet()
@@ -347,7 +349,7 @@ napi_value ZigConvertDirToSnippet(napi_env env, napi_callback_info info) {
   char *output_file = extractStringArg(env, argv[1]);
 
   // Call the Zig function
-  int result = *convertDirToSnippet(dir_path, output_file);
+  int result = convertDirToSnippet(dir_path, output_file);
 
   // Free allocated strings
   free(dir_path);

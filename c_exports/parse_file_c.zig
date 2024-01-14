@@ -56,7 +56,14 @@ export fn parseSnippetFromString(lines: [*c]const u8) [*:0]const u8 {
 
 // -> addon.createSnippetWithMetadata(filePath,title,prefix,description,new_file:bool,print_out:bool) (Node)
 
-export fn createSnippetWithMetadata(file_path: [*:0]const u8, title: [*:0]const u8, prefix: [*:0]const u8, description: [*:0]const u8, new_snippet_file: bool, print_out: bool) [*:0]const u8 {
+export fn createSnippetWithMetadata(
+    file_path: [*:0]const u8,
+    title: [*:0]const u8,
+    prefix: [*:0]const u8,
+    description: [*:0]const u8,
+    new_snippet_file: bool,
+    print_out: bool,
+) [*:0]const u8 {
     const allocator = std.heap.c_allocator;
 
     const zig_file_path = std.mem.span(file_path);
