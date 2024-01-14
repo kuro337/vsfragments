@@ -13,6 +13,7 @@ c_exports/oldbuild.zig
 tests/snip.json
 .DS_Store
 *.tar.gz*
+*.tgz*
 
 podman/linux/zig-linux-*
 napi/build
@@ -22,3 +23,4 @@ napi/node_modules
 napi/docs/prebuilt/
 napi/docs/BUILD.md
 napi/docs/tests.md
+napi/prebuilds
