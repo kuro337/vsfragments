@@ -49,12 +49,12 @@ RUN apk add --no-cache \
   libffi-dev \
   nodejs 
 
-RUN cd /app/vsfragments/napi && \
-  npm install -g prebuildify && \
-  npm i && \ 
-  prebuildify --napi && \
-  prebuildify --napi --out lib && \
-  npm test
+# RUN cd /app/vsfragments/napi && \
+#   npm install -g prebuildify && \
+#   npm i && \ 
+#   prebuildify --napi && \
+#   prebuildify --napi --out lib && \
+#   npm test
 
 
 
