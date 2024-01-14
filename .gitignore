@@ -18,3 +18,5 @@ napi/build
 napi/static/lib/
 napi/package-lock.json
 napi/node_modules
+
+podman
