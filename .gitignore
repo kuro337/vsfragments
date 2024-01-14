@@ -10,3 +10,5 @@ c_exports/main.zig
 c_exports/oldbuild.zig
 tests/snip.json
 .DS_Store
+
+podman/linux/zig-linux-*
