@@ -14,3 +14,5 @@ tests/snip.json
 .DS_Store
 
 podman/linux/zig-linux-*
+napi/build
+napi/static/lib/

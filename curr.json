@@ -1,0 +1,35 @@
+{
+	"VSCode Code Snippet 2024-01-14 01:49:17": {
+		"prefix": "prefix_insertSnippet",
+		"body": [
+			"\"  status = register_napi_function(env, exports, \"parseStringWriteToFile\", ZigParseStringWriteToFile);",
+			"  if (status != napi_ok)",
+			"  {",
+			"   \tnapi_throw_error(env, NULL, \"Unable to register function for parseStringWriteToFile\");",
+			"  }\""
+		],
+		"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."
+	},
+	"VSCode Code Snippet 2024-01-14 01:50:17": {
+		"prefix": "prefix_insertSnippet",
+		"body": [
+			"\"  status = register_napi_function(env, exports, \"parseStringWriteToFile\", ZigParseStringWriteToFile);",
+			"  if (status != napi_ok)",
+			"  {",
+			"   \tnapi_throw_error(env, NULL, \"Unable to register function for parseStringWriteToFile\");",
+			"  }\""
+		],
+		"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."
+	},
+	"VSCode Code Snippet 2024-01-14 01:55:29": {
+		"prefix": "prefix_insertSnippet",
+		"body": [
+			"\"  status = register_napi_function(env, exports, \"parseStringWriteToFile\", ZigParseStringWriteToFile);",
+			"  if (status != napi_ok)",
+			"  {",
+			"   \tnapi_throw_error(env, NULL, \"Unable to register function for parseStringWriteToFile\");",
+			"  }\""
+		],
+		"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."
+	}
+}
