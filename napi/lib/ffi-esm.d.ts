@@ -1,6 +1,6 @@
 // ffi-esm.d.ts
 
-declare module "ffi-esm" {
+declare module "vsfragments_node" {
   interface Addon {
     /**
      * Sample Method to Add two numbers together using the Foreign Function Interface

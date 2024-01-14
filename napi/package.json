@@ -1,6 +1,6 @@
 {
   "name": "vsfragments_node",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "main": "lib/export.js",
   "types": "lib/ffi-esm.d.ts",
   "gypfile": true,
