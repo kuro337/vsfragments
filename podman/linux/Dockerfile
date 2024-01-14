@@ -25,7 +25,8 @@ RUN cd /app/zig-clap && zig build
 
 RUN cd /app/vsfragments/c_exports && zig build 
 
-RUN cp /app/vsfragments/c_exports/zig-out/lib/native/ReleaseFast/* /app/vsfragments/napi/static/lib/
+# copy libs to napi folder
+# RUN cp -u /app/vsfragments/c_exports/zig-out/lib/native/ReleaseFast/* /app/vsfragments/napi/static/lib/
 
 RUN apk add --no-cache \
   build-base \
