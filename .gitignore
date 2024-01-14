@@ -23,4 +23,5 @@ napi/node_modules
 napi/docs/prebuilt/
 napi/docs/BUILD.md
 napi/docs/tests.md
-napi/prebuilds
+napi/prebuilds/
+napi/lib/prebuilds/
