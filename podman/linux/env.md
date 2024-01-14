@@ -7,6 +7,11 @@
 https://ziglang.org/download/index.json
 # tar -xvf to unzip
 
+curl  https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz
+
+curl -O https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz
+
+
 ```
 
 ```bash
