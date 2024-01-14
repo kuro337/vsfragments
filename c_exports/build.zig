@@ -55,34 +55,38 @@ const MODE = [_]OptimizeMode{ .Debug, .ReleaseSafe, .ReleaseSmall, .ReleaseFast 
 
 // NATIVE ONLY - comment out above to run just native build
 
+const lib_files = [_][]const u8{ "parse_file_c", "utils" };
+
 pub fn build(b: *std.Build) !void {
     const base_target = b.standardTargetOptions(.{});
 
-    for (MODE) |optimization| {
-        const resolved_target = base_target;
+    for (lib_files) |lib_file| {
+        for (MODE) |optimization| {
+            const resolved_target = base_target;
 
-        const lib = b.addStaticLibrary(.{
-            .name = "vsfragment_cexports",
-            .root_source_file = .{ .path = "parse_file_c.zig" },
-            .optimize = optimization,
-            .target = resolved_target,
-        });
+            const lib = b.addStaticLibrary(.{
+                .name = try std.fmt.allocPrint(b.allocator, "{s}", .{lib_file}),
+                .root_source_file = .{ .path = try std.fmt.allocPrint(b.allocator, "{s}.zig", .{lib_file}) },
+                .optimize = optimization,
+                .target = resolved_target,
+            });
 
-        lib.linkLibC();
+            lib.linkLibC();
 
-        addCommonModules(b, lib);
+            addCommonModules(b, lib);
 
-        const release = @tagName(optimization);
+            const release = @tagName(optimization);
 
-        const target_output_clib = b.addInstallArtifact(lib, .{
-            .dest_dir = .{
-                .override = .{
-                    .custom = try std.fmt.allocPrint(b.allocator, "lib/{s}/{s}", .{ "native", release }),
+            const target_output_clib = b.addInstallArtifact(lib, .{
+                .dest_dir = .{
+                    .override = .{
+                        .custom = try std.fmt.allocPrint(b.allocator, "lib/{s}/{s}", .{ "native", release }),
+                    },
                 },
-            },
-        });
+            });
 
-        b.getInstallStep().dependOn(&target_output_clib.step);
+            b.getInstallStep().dependOn(&target_output_clib.step);
+        }
     }
 }
 
