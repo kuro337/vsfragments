@@ -12,13 +12,33 @@ jq ".version = \"$new_version\"" ../package.json > temp.json && mv temp.json ../
 current_date=$(date "+%Y-%m-%d %H:%M:%S")
 new_log_entry="## Version $new_version - Released $current_date\n- Updated from $current_version to $new_version\n"
 
-echo -e "\n$new_log_entry" >> ../CHANGELOG.md 
-
-# # Append new log entry right after the first 4 lines (which include the header and current top)
-# {
-#     head -n 4 CHANGELOG.md
-#     echo -e "$new_log_entry\n"
-#     tail -n +5 CHANGELOG.md
-# } > temp.md && mv temp.md CHANGELOG.md
+echo -e "\n$new_log_entry" >> ../CHANGELOG.md
 
 echo "Updated version to $new_version and updated CHANGELOG.md"
+
+
+rm -rf ../package-lock.json ../node_modules 
+
+cd ..
+
+npm i 
+
+if npm test; then
+    echo "Tests Successfully Ran"
+
+    # Attempt to build the package
+    if npm pack; then
+        echo "Package built successfully."
+
+        # Publish the package
+        npm publish
+        echo "Package published successfully."
+    else
+        echo "Failed to build the package."
+    fi
+else 
+    echo "Tests Failed"
+fi
+
+
+

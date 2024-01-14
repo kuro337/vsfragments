@@ -1,7 +1,7 @@
 {
     "targets": [
         {
-            "target_name": "zig_core",
+            "target_name": "vsfragments_node",
             # "xcode_settings": {"MACOSX_DEPLOYMENT_TARGET": "11.0"},
             "sources": [  # Point to C source files
                 "src/native/zig_core.c",

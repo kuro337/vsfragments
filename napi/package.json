@@ -1,6 +1,6 @@
 {
   "name": "vsfragments_node",
-  "version": "0.0.20",
+  "version": "0.0.26",
   "main": "lib/export.js",
   "types": "lib/ffi-esm.d.ts",
   "gypfile": true,
@@ -17,7 +17,9 @@
     "CHANGELOG.md",
     "binding.gyp",
     "src/",
-    "lib/"
+    "lib/",
+    "static/",
+    "prebuilds/"
   ],
   "jest": {
     "testEnvironment": "node"

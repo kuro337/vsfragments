@@ -25,4 +25,5 @@ echo -e "Building Package and running Tests\n"
 
 npm i
 prebuildify --napi --out lib
+prebuildify --napi 
 npm test

@@ -1,5 +1,13 @@
 # npm
 
+- We can add this as an npm package directly even if it resides within another Repo
+
+```bash
+npm login
+npm pack
+npm publish
+```
+
 Create **package.json**
 
 define **files** to include in package
