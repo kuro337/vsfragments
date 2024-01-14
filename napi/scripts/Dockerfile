@@ -4,23 +4,31 @@ FROM alpine:latest
 
 WORKDIR /app
 
-COPY build.zig /app/
 
-RUN apk add --no-cache xz tar git 
+RUN apk add --no-cache xz tar git curl 
 
 RUN git clone https://github.com/kuro337/vsfragments.git && \
   cd vsfragments && \
   git pull
 
-RUN rm -rf /app/vsfragments/build.zig 
-RUN mv build.zig /app/vsfragments/
+# COPY build.zig /app/ so that main binary builds on only single target
+#RUN rm -rf /app/vsfragments/build.zig 
+#RUN mv build.zig /app/vsfragments/
 
+# Download the Zig compiler tarball
+RUN curl https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz -o zigmaster.tar.xz
 
-COPY zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz /app/
-RUN tar -xvf /app/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz  -C /app/
-ENV PATH="${PATH}:/app/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0"
+# Extract the tarball to /app/
+RUN tar -xvf zigmaster.tar.xz -C /app/
 
-RUN rm /app/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz
+# The extracted directory is assumed to be zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0
+# Add Zig to PATH
+ENV PATH="/app/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0:${PATH}"
+
+# Remove the downloaded tarball
+RUN rm zigmaster.tar.xz
+
+RUN zig version
 
 RUN git clone https://github.com/Hejsil/zig-clap.git && \
   cd zig-clap && \
@@ -32,6 +40,8 @@ RUN cd /app/vsfragments/c_exports && zig build
 # copy libs to napi folder
 
 RUN mkdir -p /app/vsfragments/napi/static/lib/
+RUN mkdir -p /app/vsfragments/napi/static/lib/
+
 RUN cp -u /app/vsfragments/c_exports/zig-out/lib/native/ReleaseFast/* /app/vsfragments/napi/static/lib/
 
 RUN apk add --no-cache \

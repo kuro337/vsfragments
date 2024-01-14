@@ -9,7 +9,8 @@ https://ziglang.org/download/index.json
 
 curl  https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz
 
-curl -O https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz
+curl  https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz -o zigmaster.tar.xz
+
 
 
 ```
