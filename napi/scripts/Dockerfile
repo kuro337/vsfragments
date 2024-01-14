@@ -11,9 +11,7 @@ RUN git clone https://github.com/kuro337/vsfragments.git && \
   cd vsfragments && \
   git pull
 
-# COPY build.zig /app/ so that main binary builds on only single target
-#RUN rm -rf /app/vsfragments/build.zig 
-#RUN mv build.zig /app/vsfragments/
+
 
 # Download the Zig compiler tarball
 RUN curl https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz -o zigmaster.tar.xz
@@ -21,7 +19,6 @@ RUN curl https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.
 # Extract the tarball to /app/
 RUN tar -xvf zigmaster.tar.xz -C /app/
 
-# The extracted directory is assumed to be zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0
 # Add Zig to PATH
 ENV PATH="/app/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0:${PATH}"
 

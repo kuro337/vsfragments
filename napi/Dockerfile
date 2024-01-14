@@ -18,11 +18,11 @@ RUN apk add --no-cache \
   nodejs 
 
 
-RUN npm install --save node-gyp-build
-RUN npm install -g prebuildify
-RUN npm install -g node-gyp
+# RUN npm install --save node-gyp-build
+# RUN npm install -g prebuildify
+# RUN npm install -g node-gyp
 
-COPY . ./
+# COPY . ./
 
 # npm i
 # prebuildify --napi
