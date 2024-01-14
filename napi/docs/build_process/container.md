@@ -1,6 +1,0 @@
-# linux for container
-
-```bash
-
-
-```

@@ -15,8 +15,9 @@ tests/snip.json
 
 podman/linux/zig-linux-*
 napi/build
-napi/static/lib/
+napi/static/lib
 napi/package-lock.json
 napi/node_modules
-
-podman
+napi/docs/prebuilt/
+napi/docs/BUILD.md
+napi/docs/tests.md

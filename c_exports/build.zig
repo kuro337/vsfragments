@@ -14,47 +14,6 @@ const OS = [_]Tag{
 const ARCH = [_]Arch{ Arch.aarch64, Arch.x86_64 };
 const MODE = [_]OptimizeMode{ .Debug, .ReleaseSafe, .ReleaseSmall, .ReleaseFast };
 
-// pub fn build(b: *std.Build) !void {
-//     const base_target = b.standardTargetOptions(.{});
-
-//     for (ARCH) |arch| {
-//         for (OS) |os| {
-//             for (MODE) |optimization| {
-//                 var resolved_target = base_target;
-//                 resolved_target.result.cpu.arch = arch;
-//                 resolved_target.result.os.tag = os;
-
-//                 const lib = b.addStaticLibrary(.{
-//                     .name = "vsfragment_cexports",
-//                     .root_source_file = .{ .path = "parse_file_c.zig" },
-//                     .optimize = optimization,
-//                     .target = resolved_target,
-//                 });
-
-//                 lib.linkLibC();
-
-//                 addCommonModules(b, lib);
-
-//                 const cpuarch = @tagName(arch);
-//                 const osystem = @tagName(os);
-//                 const release = @tagName(optimization);
-
-//                 const target_output_clib = b.addInstallArtifact(lib, .{
-//                     .dest_dir = .{
-//                         .override = .{
-//                             .custom = try std.fmt.allocPrint(b.allocator, "lib/{s}/{s}/{s}", .{ osystem, cpuarch, release }),
-//                         },
-//                     },
-//                 });
-
-//                 b.getInstallStep().dependOn(&target_output_clib.step);
-//             }
-//         }
-//     }
-// }
-
-// NATIVE ONLY - comment out above to run just native build
-
 const lib_files = [_][]const u8{ "parse_file_c", "utils" };
 
 pub fn build(b: *std.Build) !void {
