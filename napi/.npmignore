@@ -1,0 +1,10 @@
+node_modules/
+zig-out/
+zig-cache/
+build/
+docs/
+lib/tests/
+package-lock.json
+static/
+Dockerfile
+scripts

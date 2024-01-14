@@ -1,6 +1,6 @@
 {
-  "name": "ffi-esm",
-  "version": "0.0.92",
+  "name": "vsfragments_node",
+  "version": "0.0.20",
   "main": "lib/export.js",
   "types": "lib/ffi-esm.d.ts",
   "gypfile": true,
@@ -13,13 +13,11 @@
     "node-gyp-build": "^4.8.0"
   },
   "files": [
-    "prebuilds/",
     "README.md",
+    "CHANGELOG.md",
     "binding.gyp",
-    "src/**/*",
-    "!src/**/zig-cache/",
-    "!src/**/zig-out/",
-    "lib"
+    "src/",
+    "lib/"
   ],
   "jest": {
     "testEnvironment": "node"

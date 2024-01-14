@@ -1,0 +1,4 @@
+CompileFlags:
+  Add:
+  - "--include-directory=/opt/homebrew/opt/node/include/node" 
+  - "--include-directory=src/native/c"
