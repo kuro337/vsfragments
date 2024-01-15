@@ -1,8 +1,9 @@
 {
   "name": "vsfragments_node",
-  "version": "0.0.30",
+  "version": "0.0.32",
   "main": "lib/export.js",
-  "types": "lib/ffi-esm.d.ts",
+  "types": "lib/export.d.ts",
+  "typings": "lib/export.d.ts",
   "gypfile": true,
   "scripts": {
     "install": "node-gyp-build",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "typescript": "^5.3.3"
   }
 }

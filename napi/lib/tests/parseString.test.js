@@ -2,7 +2,7 @@
 
 const { parseStringFromNode } = require("../export");
 
-describe("ffi-esm tests", () => {
+describe("parseStringFromNode() Tests: Passing a String and Receiving the Snippet", () => {
   test("directResult returns expected string", () => {
     const inputString = "asdajsnd\\n\\\\nnnnasdkaskmaskdm";
     const directResult = parseStringFromNode(inputString);
@@ -12,6 +12,28 @@ describe("ffi-esm tests", () => {
 
     expect(directResult).toBe(expectedOutput);
     expect(compareStrings(directResult, expectedOutput)).toBe(true);
+  });
+
+  test("directResult length is greater than expected minimum", () => {
+    const inputString = "asdajsnd\\n\\\\nnnnasdkaskmaskdm";
+    const directResult = parseStringFromNode(inputString);
+
+    const minLength = 10; // Set this to the minimum expected length
+    expect(directResult.length).toBeGreaterThan(minLength);
+  });
+
+  test("directResult can be parsed into a JSON object", () => {
+    const inputString = "asdajsnd\\n\\\\nnnnasdkaskmaskdm";
+    const directResult = parseStringFromNode(inputString);
+
+    let parsedObject;
+    try {
+      parsedObject = JSON.parse(`{${directResult}}`);
+    } catch (error) {
+      parsedObject = null;
+    }
+
+    expect(parsedObject).not.toBeNull();
   });
 });
 

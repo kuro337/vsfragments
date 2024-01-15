@@ -2,7 +2,7 @@ const { parseStringWriteToFile } = require("../export");
 const fs = require("fs");
 const path = require("path");
 
-describe("ffi-esm tests", () => {
+describe("parseStringWriteToFile() tests ", () => {
   test("testFunc, returns expected string", () => {
     const exp = "123";
     const act = "123";
