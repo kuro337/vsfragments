@@ -116,7 +116,7 @@ declare module "vsfragments_node" {
    * @param create     - Appending TO a Snippets File or Creating a new File
    * @param force    - Force flag to write to potentially invalid JSON files
    * @param print    - Print to stdout
-   * @returns A status code indicating success or failure.
+   * @returns - The Snippet String
    */
   export function parseStringWriteToFile(
     text: string,
@@ -127,7 +127,7 @@ declare module "vsfragments_node" {
     create: boolean,
     force: boolean,
     print: boolean
-  ): number;
+  ): string;
 
   /**
    * Creates a snippet file from a directory.

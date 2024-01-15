@@ -1,6 +1,6 @@
 {
   "name": "vsfragments_node",
-  "version": "0.0.39",
+  "version": "0.0.40",
   "main": "./lib/export.js",
   "module": "./lib/export.js",
   "types": "./lib/export.d.ts",
