@@ -139,7 +139,7 @@ declare module "vsfragments_node" {
    * @param print -  Print output to stdouT
    * @returns The Snippet string
    */
-  export default function parseFileGetSnippet(
+  export function parseFileGetSnippet(
     filePath: string,
     create: boolean,
     print: boolean
