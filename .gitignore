@@ -16,6 +16,8 @@ tests/snip.json
 *.tgz*
 
 podman/linux/zig-linux-*
+
+!napi/lib/tests/mock/
 napi/build
 napi/static/lib
 napi/package-lock.json

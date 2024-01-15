@@ -41,3 +41,7 @@ All Version Updates for new builds tracked here
 ## Version 0.0.32 - Released 2024-01-14 18:38:23
 - Updated from 0.0.31 to 0.0.32
 
+
+## Version 0.0.33 - Released 2024-01-14 20:50:54
+- Updated from 0.0.32 to 0.0.33
+
