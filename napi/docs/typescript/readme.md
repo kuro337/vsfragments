@@ -82,3 +82,16 @@ module.exports = {
   getPath: addon.getPath,
 };
 ```
+
+In Typescript projects - import using `import {}` syntax
+
+```ts
+import {
+  parseStringFromNode,
+  parseFileGetSnippet,
+  parseFileWriteOutput,
+  createSnippetWithMetadata,
+  parseStringWriteToFile,
+  convertDirToSnippet,
+} from "vsfragments_node";
+```
