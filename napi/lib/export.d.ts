@@ -32,37 +32,57 @@ declare module "vsfragments_node" {
    * );
    *
    * @param filePath - The path to the folder.
-   * @param title - The name of the output file, optionally a fully qualified path.
-   * @param string - The name of the output file, optionally a fully qualified path.
-   * @param description - The name of the output file, optionally a fully qualified path.
-   * @param newFile - The name of the output file, optionally a fully qualified path.
-   * @param printOut - The name of the output file, optionally a fully qualified path.
-   * @returns A status code indicating success or failure.
+   * @param title   - Snippet Title Field
+   * @param prefix - Snippet prefix to trigger in the IDE
+   * @param description - Short useful description for the Snippet
+   * @param enclosing_brackets - True returns a new Snippets file, else returns a single Snippet entry
+   * @param print - Print to stdout if true
+   * @returns - Returns the Snippet string
    */
   export function createSnippetWithMetadata(
     filePath: string,
     title: string,
     prefix: string,
     description: string,
-    newFile: boolean,
+    enclosing_brackets: boolean,
     printOut: boolean
   ): string;
 
   /**
-   * Transforms a File to a Snippet and writes to the location provided.
+   * Transforms a String to a Snippet and writes to the location provided.
    * The output file can be an existing file or a new file.
    *
-   * @param dir_path - The path to the folder.
-   * @param outputFile - The name of the output file, optionally a fully qualified path.
+   * @example
+   *
+   * const input_file = "path/to/some/file.txt"
+   *
+   *  parseFileWriteOutput(
+   *      input_file,
+   *      "snippet.json",
+   *      "js_napiUsage",
+   *      true,
+   *      false
+   * );
+   *
+   * @param inputFilePath - The input file - pass the full qualified Path
+   * @param outputFilePath - The name of the output file, optionally a fully qualified path.
+   * @param title       - Title for the Snippet
+   * @param prefix       - Prefix for Snippet trigger
+   * @param description - Description for the Snippet
+   * @param create     - Appending TO a Snippets File or Creating a new File
+   * @param force    - Force flag to write to potentially invalid JSON files
+   * @param print    - Print to stdout
    * @returns A status code indicating success or failure.
    */
   export function parseFileWriteOutput(
     inputFilePath: string,
     outputFilePath: string,
+    title: string,
     prefix: string,
     description: string,
-    newFile: boolean,
-    printOut: boolean
+    create: boolean,
+    force: boolean,
+    print: boolean
   ): number;
 
   /**
@@ -80,26 +100,33 @@ declare module "vsfragments_node" {
    *  parseStringWriteToFile(
    *      multiLineString,
    *      "snippet.json",
+   *      "JS NAPI Usage:",
    *      "js_napiUsage",
+   *      "using the napi interface from node"
    *      true,
-   *      false
+   *      true,
+   *      true
    * );
    *
    * @param text - The path to the folder.
    * @param outputFilePath - The name of the output file, optionally a fully qualified path.
+   * @param title       - Title for the Snippet
    * @param prefix       - Prefix for Snippet trigger
-   * @param description - Description for Snippet
-   * @param newFile     - Creating a new file
-   * @param printOut    - Print to stdout
+   * @param description - Description for the Snippet
+   * @param create     - Appending TO a Snippets File or Creating a new File
+   * @param force    - Force flag to write to potentially invalid JSON files
+   * @param print    - Print to stdout
    * @returns A status code indicating success or failure.
    */
   export function parseStringWriteToFile(
     text: string,
     outputFilePath: string,
+    title: string,
     prefix: string,
     description: string,
-    newFile: boolean,
-    printOut: boolean
+    create: boolean,
+    force: boolean,
+    print: boolean
   ): number;
 
   /**
