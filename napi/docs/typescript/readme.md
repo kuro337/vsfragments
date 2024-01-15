@@ -1,6 +1,6 @@
 # Adding typescript
 
-- Currently there is a `package.json` and `export.js`
+Define exports in `lib/export.js` and types in `lib/export.d.ts` - and point **package.json** to `lib/export.d.ts`
 
 ```json
 {
@@ -26,10 +26,20 @@
 }
 ```
 
-- Create a typings file and specify in `package.json` we need to have types
+- Create **export.d.ts**
 
-```json
-"types": "ffi-esm.d.ts",
+```ts
+declare module "vsfragments_node" {
+  /**
+   * Sample Method to Add two numbers together using the Foreign Function Interface
+   * @param a - The first number.
+   * @param b - The second number.
+   * @returns The sum of `a` and `b`.
+   */
+  export function zigAdd(a: number, b: number): number;
+
+  // other funcs
+}
 ```
 
 - Adding Typescript
@@ -57,9 +67,9 @@ export function zigAdd(a: number, b: number): number;
 **export.js**
 
 ```js
-/// <reference path="./export.d.ts" />
-
 const addon = require("node-gyp-build")(__dirname);
+
+// define exports matching .d.ts
 
 module.exports = {
   createSnippetWithMetadata: addon.createSnippetWithMetadata,
@@ -71,12 +81,4 @@ module.exports = {
   parseStringFromNode: addon.parseStringFromNode,
   getPath: addon.getPath,
 };
-```
-
-Now when we use our functions they have types
-
-```js
-// has types and jsdoc info
-
-const { parseFileWriteOutput } = require("../export");
 ```
