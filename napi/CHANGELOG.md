@@ -45,3 +45,15 @@ All Version Updates for new builds tracked here
 ## Version 0.0.33 - Released 2024-01-14 20:50:54
 - Updated from 0.0.32 to 0.0.33
 
+
+## Version 0.0.34 - Released 2024-01-14 21:03:27
+- Updated from 0.0.33 to 0.0.34
+
+
+## Version 0.0.35 - Released 2024-01-14 21:57:57
+- Updated from 0.0.34 to 0.0.35
+
+
+## Version 0.0.36 - Released 2024-01-14 22:02:06
+- Updated from 0.0.35 to 0.0.36
+

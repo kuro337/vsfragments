@@ -1,13 +1,16 @@
 {
   "name": "vsfragments_node",
-  "version": "0.0.33",
+  "version": "0.0.36",
   "main": "lib/export.js",
   "types": "lib/export.d.ts",
-  "typings": "lib/export.d.ts",
   "gypfile": true,
+  "typescript": {
+    "definition": "lib/export.d.ts"
+  },
   "scripts": {
     "install": "node-gyp-build",
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc"
   },
   "dependencies": {
     "node-addon-api": "^3.0.0",

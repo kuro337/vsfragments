@@ -1,12 +1,63 @@
 /// <reference path="./export.js" />
 
+// declare module "createSnippetWithMetadata" {
+//   /**
+//    * Transforms a File to a Snippet and writes to the location provided.
+//    * The output file can be an existing file or a new file.
+//    * @example
+//    *  createSnippetWithMetadata(
+//    *      "path/to/file.cc", "Reading bytes", "cpp_readBytes",
+//    *      "reading byte streams from disk",
+//    *      true, // create new file if not found
+//    *      true  // print to stdout
+//    * );
+//    *
+//    * @param filePath - The path to the folder.
+//    * @param title - The name of the output file, optionally a fully qualified path.
+//    * @param string - The name of the output file, optionally a fully qualified path.
+//    * @param description - The name of the output file, optionally a fully qualified path.
+//    * @param newFile - The name of the output file, optionally a fully qualified path.
+//    * @param printOut - The name of the output file, optionally a fully qualified path.
+//    * @returns A status code indicating success or failure.
+//    */
+//   function createSnippetWithMetadata(
+//     filePath: string,
+//     title: string,
+//     prefix: string,
+//     description: string,
+//     newFile: boolean,
+//     printOut: boolean
+//   ): string;
+
+//   export = createSnippetWithMetadata;
+// }
+
+// declare module "convertDirToSnippet" {
+//   /**
+//    * Creates a snippet file from a directory.
+//    *
+//    * The function processes all text files in the given directory and generates a snippet file.
+//    * Non-UTF files are ignored, making it safe to use in directories with binary files.
+//    *
+//    *  @example
+//    * convertDirToSnippet('/path/to/directory', 'output.snippets');
+//    *
+//    * @param dir_path - The path to the folder.
+//    * @param outputFile - The name of the output file, optionally a fully qualified path.
+//    * @returns A status code indicating success or failure.
+//    */
+//   function convertDirToSnippet(dir_path: string, outputFile: string): number;
+
+//   export = convertDirToSnippet;
+// }
+
 /**
  * Sample Method to Add two numbers together using the Foreign Function Interface
  * @param a - The first number.
  * @param b - The second number.
  * @returns The sum of `a` and `b`.
  */
-export function zigAdd(a: number, b: number): number;
+export default function zigAdd(a: number, b: number): number;
 
 /**
  * Return the absolute Path from a file path
@@ -19,7 +70,7 @@ export function zigAdd(a: number, b: number): number;
  *
  * @returns The absolute file path
  */
-export function getPath(filePath: string): string;
+export default function getPath(filePath: string): string;
 
 /**
  * Transforms a File to a Snippet and writes to the location provided.
@@ -40,7 +91,7 @@ export function getPath(filePath: string): string;
  * @param printOut - The name of the output file, optionally a fully qualified path.
  * @returns A status code indicating success or failure.
  */
-export function createSnippetWithMetadata(
+export default function createSnippetWithMetadata(
   filePath: string,
   title: string,
   prefix: string,
@@ -57,7 +108,7 @@ export function createSnippetWithMetadata(
  * @param outputFile - The name of the output file, optionally a fully qualified path.
  * @returns A status code indicating success or failure.
  */
-export function parseFileWriteOutput(
+export default function parseFileWriteOutput(
   inputFilePath: string,
   outputFilePath: string,
   prefix: string,
@@ -94,7 +145,7 @@ export function parseFileWriteOutput(
  * @param printOut    - Print to stdout
  * @returns A status code indicating success or failure.
  */
-export function parseStringWriteToFile(
+export default function parseStringWriteToFile(
   text: string,
   outputFilePath: string,
   prefix: string,
@@ -116,7 +167,7 @@ export function parseStringWriteToFile(
  * @param outputFile - The name of the output file, optionally a fully qualified path.
  * @returns A status code indicating success or failure.
  */
-export function convertDirToSnippet(
+export default function convertDirToSnippet(
   dir_path: string,
   outputFile: string
 ): number;
@@ -140,7 +191,7 @@ export function convertDirToSnippet(
  * @param print -  Print output to stdouT
  * @returns The Snippet string
  */
-export function parseFileGetSnippet(
+export default function parseFileGetSnippet(
   filePath: string,
   create: boolean,
   print: boolean
@@ -158,7 +209,7 @@ export function parseFileGetSnippet(
  * @param text - The String to be parsed into a Snippet.
  * @returns The parsed and formatted string with ASCII control characters.
  */
-export function parseStringFromNode(text: string): string;
+export default function parseStringFromNode(text: string): string;
 
-export function writeFileCurrPath(filePath: string): number;
-export function writeFileToPathAbs(filePath: string): number;
+export default function writeFileCurrPath(filePath: string): number;
+export default function writeFileToPathAbs(filePath: string): number;
