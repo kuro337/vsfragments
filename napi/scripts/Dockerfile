@@ -11,8 +11,6 @@ RUN git clone https://github.com/kuro337/vsfragments.git && \
   cd vsfragments && \
   git pull
 
-
-
 # Download the Zig compiler tarball
 RUN curl https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz -o zigmaster.tar.xz
 

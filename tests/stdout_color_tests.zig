@@ -179,7 +179,7 @@ test "Success and Error Tracking with Unicode" {
     const bold_green = "\x1b[1;32mThis text will be bold green\x1b[0m";
 
     const red_err_text = "\x1b[31mThis text will be red error text.\x1b[0m";
-    const bold_white_text = "\x1b[1mThis text will be bold error text.\x1b[0m";
+    const bold_white_text = "\x1b[1mThis text will be bold white text.\x1b[0m";
     const bold_white = "\x1b[1m";
     const warning_yellow = "\x1b[33mNot Recommended for Production\x1b[0m";
     const warning_bright_yellow = "\x1b[93mWarning: Make sure no Memory Leaks Present.\x1b[0m";

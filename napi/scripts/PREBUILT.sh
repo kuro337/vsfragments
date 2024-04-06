@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo -e "Creating Linux Images for FFI Consumer" 
+
 IMAGE="linux_napi"
 CONTAINER="linux_pod"
 SRC_PATH_A="/app/vsfragments/napi/prebuilds"
@@ -9,8 +11,6 @@ DEST_PATH_B="../prebuilds"
 
 MACHINE_NAME="podman-machine-default"  
 MAX_ATTEMPTS=5
-
-
 
 # Function to check if Podman machine is running
 function is_podman_machine_running() {

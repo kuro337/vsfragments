@@ -3,9 +3,11 @@ zig-out
 APP_README.md
 mock
 tests/FLOWS_TEST.md
-
+.vscode
+zig-out-bkp
 *node_modules*
 
+README_CONTRIB.md
 .snippets
 structs/snippet_old.zig
 c_exports/main.zig

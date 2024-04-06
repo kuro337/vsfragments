@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo -e "Building FFI Consumer Node Lib for Native Target"
+
 SCRIPT_DIR=$(pwd)
 
 echo -e "Deleting package.lock & node_modules\n"
