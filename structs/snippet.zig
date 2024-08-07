@@ -31,6 +31,16 @@ pub const Snippet = struct {
         }
     }
 
+    // Flushes current Snippet to stdout
+    pub fn flushStdout(self: *Snippet) !void {
+        const out = std.io.getStdOut();
+        var buf = std.io.bufferedWriter(out.writer());
+        var w = buf.writer();
+        try w.print("{s}\n", .{self});
+        try buf.flush();
+        return;
+    }
+
     pub fn setMetadata(
         self: *Snippet,
         title: []const u8,

@@ -1,29 +1,28 @@
-# builds library and creates linux node package
+# Pulls Latest Master Zig, Builds library, and creates linux node package
 
 FROM alpine:latest
 
 WORKDIR /app
 
+RUN apk add --no-cache curl jq tar xz git
 
-RUN apk add --no-cache xz tar git curl 
+RUN ZIG_URL=$(curl -s https://ziglang.org/download/index.json | jq -r '.master."aarch64-linux".tarball') && \
+  curl -L $ZIG_URL -o zigmaster.tar.xz
+
+RUN mkdir zig-dist && \
+  tar -xJf zigmaster.tar.xz -C zig-dist --strip-components=1 && \
+  mv zig-dist/zig /usr/local/bin/ && \
+  mv zig-dist/lib /usr/local/lib/zig && \
+  rm -rf zig-dist zigmaster.tar.xz
+
+
+RUN zig version || exit 1
+
 
 RUN git clone https://github.com/kuro337/vsfragments.git && \
   cd vsfragments && \
   git pull
 
-# Download the Zig compiler tarball
-RUN curl https://ziglang.org/builds/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0.tar.xz -o zigmaster.tar.xz
-
-# Extract the tarball to /app/
-RUN tar -xvf zigmaster.tar.xz -C /app/
-
-# Add Zig to PATH
-ENV PATH="/app/zig-linux-aarch64-0.12.0-dev.2154+e5dc9b1d0:${PATH}"
-
-# Remove the downloaded tarball
-RUN rm zigmaster.tar.xz
-
-RUN zig version
 
 RUN git clone https://github.com/Hejsil/zig-clap.git && \
   cd zig-clap && \
@@ -33,7 +32,6 @@ RUN git clone https://github.com/Hejsil/zig-clap.git && \
 RUN cd /app/vsfragments/c_exports && zig build 
 
 # copy libs to napi folder
-
 RUN mkdir -p /app/vsfragments/napi/static/lib/
 RUN mkdir -p /app/vsfragments/napi/static/lib/
 

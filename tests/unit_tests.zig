@@ -49,10 +49,8 @@ test "JSON Stringify" {
     var string = std.ArrayList(u8).init(fba.allocator());
     try std.json.stringify(x, .{}, string.writer());
 
-    // print("Stringified {s}\n", .{string.items});
-
     try expect(eql(u8, string.items,
-        \\{"lat":5.199766540527344e+01,"long":-7.406870126724243e-01}
+        \\{"lat":5.199766540527344e1,"long":-7.406870126724243e-1}
     ));
 }
 

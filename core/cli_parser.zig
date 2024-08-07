@@ -20,12 +20,14 @@ pub fn parseCLI(allocator: std.mem.Allocator) !Flags {
         \\-i, --dir         <string>    File path for Full Directory.
         \\-l, --lang        <string>    Language specification.
         \\-r, --prefix       <string>    Optional prefix for snippet.
+        \\-z, --pfx          <string>    Optional prefixes for snippet.
         \\-t, --title       <string>    Optional title for snippet.
         \\-d, --desc        <string>    Optional description for snippet.
         \\-p, --print                   Flag for printing output.
         \\-y, --y                       Confirmation Flag for creating the Snippets File.
         \\-x, --force                   Force Flag for Appending to Invalid Snippets Files.
         \\-n, --time                    Add the Timestamp to the Generated Snippet
+        \\-x, --disable                 Disable Guidance Messages
         \\ 
     );
 
@@ -43,6 +45,10 @@ pub fn parseCLI(allocator: std.mem.Allocator) !Flags {
     };
     defer res.deinit();
 
+    if (res.args.pfx) |x| {
+        std.debug.print("Pfixes: {s}\n", .{x});
+    }
+
     return Flags{
         .file_path = if (res.args.file) |f| f else "",
         .dir_path = if (res.args.dir) |d| d else "",
@@ -57,5 +63,6 @@ pub fn parseCLI(allocator: std.mem.Allocator) !Flags {
         .print = if (res.args.print == 1) true else false,
         .confirmation = if (res.args.y == 1) true else false,
         .force = if (res.args.force == 1) true else false,
+        .disable_help = if (res.args.disable == 1) true else false,
     };
 }

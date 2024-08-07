@@ -6,7 +6,9 @@ const Snippet = @import("snippet").Snippet;
 const Flags = @import("flags").Flags;
 const FlagEval = @import("flags").FlagEval;
 
+
 const validateFile = @import("modify_snippet").validateFile;
+
 const checkFileExists = @import("modify_snippet").checkFileExists;
 const handleFileNotExists = @import("create_file").handleFileNotExists;
 const inlineBufferedIO = @import("write_results").inlineBufferedIO;
@@ -34,8 +36,14 @@ pub fn main() !void {
         },
 
         FlagEval.inline_code => { // => vsfragment -c '{text}'
-            print("{s}", .{constants.stdout_inline});
+
             var snippet = try Snippet.createFromString(allocator, flags.code_str, true);
+
+            if (flags.disable_help) {
+                return try snippet.flushStdout();
+            }
+
+            print("{s}", .{constants.stdout_inline});
             snippet.setMetadata(flags.title, flags.prefix, flags.description, flags.confirmation, flags.force, flags.time);
             try inlineBufferedIO(snippet);
         },

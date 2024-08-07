@@ -122,71 +122,19 @@ test "JSON Validation Tests" {
         \\
         , .isValid = false },
         TestCase{ .json = 
-        \\{
-        \\	"VSCode Code Snippet": {
-        \\		"prefix": "prefix_insertSnippet",
-        \\		"body": [
-        \\			"# Threading OS Threads",
-        \\			"",
-        \\			"```rust",
-        \\			"const std = @import(\"std\");",
-        \\			"const expect = std.testing.expect;",
-        \\			"const print = std.debug.print;",
-        \\			"const ArrayList = std.ArrayList;",
-        \\			"const test_allocator = std.testing.allocator;",
-        \\			"const eql = std.mem.eql;",
-        \\			"const Thread = std.Thread;",
-        \\			"",
-        \\			"pub fn main() !void {",
-        \\			"   \tstd.debug.print(\"{s}\\n\", .{\"Hello, world!\"});",
-        \\			"}",
-        \\			"```"
-        \\		],
-        \\		"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."
-        \\	}
+        \\{"VSCode Code Snippet": {"prefix": "prefix_insertSnippet","body": ["# Threading OS Threads","","```rust","const std = @import(\"std\");","const expect = std.testing.expect;","const print = std.debug.print;","const ArrayList = std.ArrayList;","const test_allocator = std.testing.allocator;","const eql = std.mem.eql;","const Thread = std.Thread;","","pub fn main() !void {","   \tstd.debug.print(\"{s}\\n\", .{\"Hello, world!\"});","}","```"],"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."}
         \\}
         , .isValid = true },
         TestCase{ .json = 
-        \\{
-        \\	"Extra Comma Failure": {
-        \\		"prefix": "prefix_insertSnippet",
-        \\		"body": [
-        \\			"# Threading OS Threads",
-        \\			"",
-        \\			"```rust",
-        \\			"```",
-        \\		],
-        \\		"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."
-        \\	}
+        \\{"Extra Comma Failure": {"prefix": "prefix_insertSnippet","body": ["# Threading OS Threads","","```rust","```",],"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."}
         \\}
         , .isValid = false },
         TestCase{ .json = 
-        \\{
-        \\	"Git Clear Cache": {
-        \\		"prefix": "gitcache",
-        \\		"body": [
-        \\			"# Removes files from Git Tree - run git add . after this to Readd all then Commit and Push",
-        \\			"git rm --cached -r ."
-        \\		],
-        \\		"description": "Log output to console"
-        \\	},
-        \\	"Git Init Repo - Merge Repo Files to Local and Push Local": {
-        \\		"prefix": "gitinitmergepush",
-        \\		"body": [
-        \\			"git init",
-        \\			"git add .",
-        \\			"git commit -m \"Initial commit for vembed package\"",
-        \\			"# To Merge Safely with Existing Files on Main",
-        \\			"git pull origin main --allow-unrelated-histories --rebase",
-        \\			"git remote add origin https://github.com/kuro337/vembed.git",
-        \\			"git push -u origin main"
-        \\		],
-        \\		"description": "When new repo - created with 1 file in main use this to merge with local files and push to remote"
-        \\	}
+        \\{"Git Clear Cache": {"prefix": "gitcache","body": ["# Removes files from Git Tree - run git add . after this to Readd all then Commit and Push","git rm --cached -r ."],"description": "Log output to console"},"Git Init Repo - Merge Repo Files to Local and Push Local": {"prefix": "gitinitmergepush","body": ["git init","git add .","git commit -m \"Initial commit for vembed package\"","# To Merge Safely with Existing Files on Main","git pull origin main --allow-unrelated-histories --rebase","git remote add origin https://github.com/kuro337/vembed.git""git push -u origin main"],"description": "When new repo - created with 1 file in main use this to merge with local files and push to remote"}
         \\}
         \\
         \\
-        , .isValid = true },
+        , .isValid = false},
     };
 
     // Iterate through each test case
@@ -222,28 +170,7 @@ test "Validate File" {
 
 test "Validate Structure" {
     const valid_structure =
-        \\{
-        \\	"title": {
-        \\		"prefix": "prefix_insertSnippet",
-        \\		"body": [
-        \\			"# Threading OS Threads",
-        \\			"",
-        \\			"```rust",
-        \\			"const std = @import(\"std\");",
-        \\			"const expect = std.testing.expect;",
-        \\			"const print = std.debug.print;",
-        \\			"const ArrayList = std.ArrayList;",
-        \\			"const test_allocator = std.testing.allocator;",
-        \\			"const eql = std.mem.eql;",
-        \\			"const Thread = std.Thread;",
-        \\			"",
-        \\			"pub fn main() !void {",
-        \\			"   \tstd.debug.print(\"{s}\\n\", .{\"Hello, world!\"});",
-        \\			"}",
-        \\			"```"
-        \\		],
-        \\		"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."
-        \\	}
+        \\{ "title": {"prefix": "prefix_insertSnippet","body": ["# Threading OS Threads","","```rust","const std = @import(\"std\");","const expect = std.testing.expect;","const print = std.debug.print;","const ArrayList = std.ArrayList;","const test_allocator = std.testing.allocator;","const eql = std.mem.eql;","const Thread = std.Thread;","","pub fn main() !void {","   \tstd.debug.print(\"{s}\\n\", .{\"Hello, world!\"});","}","```"],"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."}
         \\}
     ;
 

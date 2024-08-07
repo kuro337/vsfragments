@@ -27,6 +27,7 @@ pub const Flags = struct {
     prefix: []const u8 = "",
     confirmation: bool = false,
     force: bool = false,
+    disable_help: bool = false,
 
     pub fn evalCmds(self: Flags) FlagEval {
 

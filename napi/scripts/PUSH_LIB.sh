@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Update hellofrag /Users/kuro/Documents/Code/JS/vsfragments/hellofrag/scripts/
+
+# npm outdated to check new versions available
+
 # Bump version
 current_version=$(jq -r '.version' ../package.json)
 base_version=${current_version%.*}

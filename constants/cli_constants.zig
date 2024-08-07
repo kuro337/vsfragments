@@ -129,7 +129,8 @@ const help_flags_multiline =
     \\  -i, --dir    <dir_path>     Convert all files from a Folder to Snippets 
     \\  -l, --lang   <language>     Language of the Code String
     \\  -p, --print                 Print the Fragment to stdout
-    \\  -h, --help                  Print this help message
+    \\  -h, --help                  Print this help message.
+    \\  -d, --disable               Disable help messages.
     \\  
     \\  -y, --y                     File Creation Flag 
     \\  -x, --force                 Use to Force Push Snippets to Existing Files  
@@ -141,6 +142,7 @@ const help_flags_multiline =
     \\  --desc       <description>  Description for the Fragment
     \\
     \\  --time                      Add the Timestamp to the Generated Snippet
+    \\  --nohelp                    Disable Help Messages
     \\
 ;
 

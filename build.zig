@@ -19,18 +19,34 @@ pub fn build(b: *Build) !void {
 
     const test_step = b.step("test", "Run unit tests");
 
-    const unit_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/unit_tests.zig" }, .target = base_target });
-    const enum_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/enum_tests.zig" }, .target = base_target });
-    const json_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/json_tests.zig" }, .target = base_target });
-    const parsing_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/parsing_tests.zig" }, .target = base_target });
-    const cli_flag_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/cli_flags_tests.zig" }, .target = base_target });
-    const metadata_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/metadata_tests.zig" }, .target = base_target });
-    const strconv_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/str_conv_tests.zig" }, .target = base_target });
-    const reader_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/reader_tests.zig" }, .target = base_target });
-    const union_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/union_tests.zig" }, .target = base_target });
-    const read_dir_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/read_dir.zig" }, .target = base_target });
-    const c_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/c_tests.zig" }, .target = base_target });
-    const batch_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/batch_write_tests.zig" }, .target = base_target });
+    // b.path(src_path)
+
+    const unit_tests = b.addTest(.{ .root_source_file = b.path("tests/unit_tests.zig") , .target = base_target });
+
+    const enum_tests = b.addTest(.{ .root_source_file = b.path("tests/enum_tests.zig" ), .target = base_target });
+    const json_tests = b.addTest(.{ .root_source_file = b.path("tests/json_tests.zig" ), .target = base_target });
+    const parsing_tests = b.addTest(.{ .root_source_file = b.path("tests/parsing_tests.zig" ), .target = base_target });
+    const cli_flag_tests = b.addTest(.{ .root_source_file = b.path("tests/cli_flags_tests.zig" ), .target = base_target });
+    const metadata_tests = b.addTest(.{ .root_source_file = b.path("tests/metadata_tests.zig" ), .target = base_target });
+    const strconv_tests = b.addTest(.{ .root_source_file = b.path("tests/str_conv_tests.zig" ), .target = base_target });
+    const reader_tests = b.addTest(.{ .root_source_file = b.path("tests/reader_tests.zig" ), .target = base_target });
+    const union_tests = b.addTest(.{ .root_source_file = b.path("tests/union_tests.zig" ), .target = base_target });
+    const read_dir_tests = b.addTest(.{ .root_source_file = b.path("tests/read_dir.zig" ), .target = base_target });
+    const c_tests = b.addTest(.{ .root_source_file = b.path("tests/c_tests.zig" ), .target = base_target });
+    const batch_tests = b.addTest(.{ .root_source_file = b.path("tests/batch_write_tests.zig" ), .target = base_target });
+
+    // const unit_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/unit_tests.zig" }, .target = base_target });
+    //const enum_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/enum_tests.zig" }, .target = base_target });
+    //const json_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/json_tests.zig" }, .target = base_target });
+    //const parsing_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/parsing_tests.zig" }, .target = base_target });
+    //const cli_flag_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/cli_flags_tests.zig" }, .target = base_target });
+    //const metadata_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/metadata_tests.zig" }, .target = base_target });
+    //const strconv_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/str_conv_tests.zig" }, .target = base_target });
+    //const reader_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/reader_tests.zig" }, .target = base_target });
+    //const union_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/union_tests.zig" }, .target = base_target });
+    //const read_dir_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/read_dir.zig" }, .target = base_target });
+    //const c_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/c_tests.zig" }, .target = base_target });
+    //const batch_tests = b.addTest(.{ .root_source_file = .{ .path = "tests/batch_write_tests.zig" }, .target = base_target });
 
     const run_enum_tests = b.addRunArtifact(enum_tests);
     const run_c_tests = b.addRunArtifact(c_tests);
@@ -72,7 +88,7 @@ pub fn build(b: *Build) !void {
 
                 const exe = b.addExecutable(.{
                     .name = "vsfragment",
-                    .root_source_file = .{ .path = "main.zig" },
+                    .root_source_file = b.path ( "main.zig" ),
                     .optimize = optimization,
                     .target = resolved_target,
                 });
@@ -99,15 +115,16 @@ pub fn build(b: *Build) !void {
 }
 
 fn addCommonModules(b: *Build, exe: *CompileStep) void {
-    const read_lines = b.addModule("read_lines", .{ .root_source_file = .{ .path = "utils/read_lines.zig" } });
-    const coord = b.addModule("coord", .{ .root_source_file = .{ .path = "structs/coord.zig" } });
-    const memory_mgmt = b.addModule("memory_mgmt", .{ .root_source_file = .{ .path = "utils/memory_mgmt.zig" } });
-    const constants = b.addModule("constants", .{ .root_source_file = .{ .path = "constants/cli_constants.zig" } });
+    const read_lines = b.addModule("read_lines", .{ .root_source_file = b.path ("utils/read_lines.zig")  });
+    const coord = b.addModule("coord", .{ .root_source_file = b.path ("structs/coord.zig")  });
+    const memory_mgmt = b.addModule("memory_mgmt", .{ .root_source_file = b.path ("utils/memory_mgmt.zig")  });
+    const constants = b.addModule("constants", .{ .root_source_file = b.path ("constants/cli_constants.zig")  });
 
-    const timestamp = b.addModule("timestamp", .{ .root_source_file = .{ .path = "utils/time/timestamp.zig" } });
-    const snippet = b.addModule("snippet", .{ .root_source_file = .{ .path = "structs/snippet.zig" }, .imports = &.{.{ .name = "timestamp", .module = timestamp }} });
+    const timestamp = b.addModule("timestamp", .{ .root_source_file = b.path ("utils/time/timestamp.zig")  });
+    const snippet = b.addModule("snippet", .{ .root_source_file = b.path ("structs/snippet.zig") , .imports = &.{.{ .name = "timestamp", .module = timestamp }} });
+
     const json_parser = b.createModule(.{
-        .root_source_file = .{ .path = "core/json_parser.zig" },
+        .root_source_file = b.path ( "core/json_parser.zig" ),
         .imports = &.{
             .{ .name = "snippet", .module = snippet },
             .{ .name = "memory_mgmt", .module = memory_mgmt },
@@ -117,31 +134,31 @@ fn addCommonModules(b: *Build, exe: *CompileStep) void {
     });
 
     const flags = b.addModule("flags", .{
-        .root_source_file = .{ .path = "structs/flags.zig" },
+        .root_source_file = b.path ( "structs/flags.zig" ),
         .imports = &.{.{ .name = "constants", .module = constants }},
     });
 
-    const write_results = b.addModule("write_results", .{ .root_source_file = .{ .path = "utils/write_results.zig" }, .imports = &.{
+    const write_results = b.addModule("write_results", .{ .root_source_file = b.path ( "utils/write_results.zig" ), .imports = &.{
         .{ .name = "snippet", .module = snippet },
         .{ .name = "constants", .module = constants },
     } });
 
     const clap = b.addModule("clap", .{
-        .root_source_file = .{ .path = "../zig-clap/clap.zig" },
+        .root_source_file = b.path ( "../zig-clap/clap.zig" ),
     });
 
     const modify_snippet = b.addModule("modify_snippet", .{
-        .root_source_file = .{ .path = "core/modify_snippet.zig" },
+        .root_source_file =  b.path ( "core/modify_snippet.zig" ),
         .imports = &.{ .{ .name = "snippet", .module = snippet }, .{ .name = "memory_mgmt", .module = memory_mgmt }, .{ .name = "constants", .module = constants } },
     });
 
     const create_file = b.addModule("create_file", .{
-        .root_source_file = .{ .path = "utils/create_file.zig" },
+        .root_source_file = b.path ( "utils/create_file.zig" ),
         .imports = &.{ .{ .name = "snippet", .module = snippet }, .{ .name = "constants", .module = constants } },
     });
 
     const cli_parser = b.addModule("cli_parser", .{
-        .root_source_file = .{ .path = "core/cli_parser.zig" },
+        .root_source_file = b.path ( "core/cli_parser.zig" ),
         .imports = &.{ .{ .name = "clap", .module = clap }, .{ .name = "flags", .module = flags }, .{ .name = "memory_mgmt", .module = memory_mgmt }, .{ .name = "constants", .module = constants } },
     });
 

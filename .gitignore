@@ -29,3 +29,6 @@ napi/docs/BUILD.md
 napi/docs/tests.md
 napi/prebuilds/
 napi/lib/prebuilds/
+
+APPREADME.md
+READMECONTRIB.md

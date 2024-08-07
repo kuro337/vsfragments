@@ -53,3 +53,26 @@ pub fn writeBufferedIO(snippet: Snippet) !void {
 
     try buf.flush();
 }
+
+// Formats an Array by a Prefix,Suffix, and Seperator and returns the String
+// @Usage:
+//    const result = try formatString(allocator, &lines, "\"", "\"", ",");
+//    defer allocator.free(result);
+pub fn formatString(allocator: std.mem.Allocator, lines: [][]const u8, prefix: []const u8, suffix: []const u8, sep: []const u8) ![]u8 {
+    const n = lines.len;
+
+    if (n == 0) {
+        // Handle empty case
+        return try std.fmt.allocPrint(allocator, "[]", .{});
+    }
+    var writer = std.ArrayList(u8).init(allocator);
+    defer writer.deinit();
+    try writer.writer().print("[{s}{s}{s}{s} ", .{ prefix, lines[0], suffix, sep });
+    for (lines[1 .. n - 1]) |line| {
+        try writer.writer().print("{s}{s}{s}{s} ", .{ prefix, line, suffix, sep });
+    }
+
+    try writer.writer().print("{s}{s}{s}]", .{ prefix, lines[n - 1], suffix });
+
+    return writer.toOwnedSlice();
+}
