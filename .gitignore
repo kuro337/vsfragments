@@ -6,6 +6,7 @@ tests/FLOWS_TEST.md
 .vscode
 zig-out-bkp
 *node_modules*
+./zig-cache
 
 README_CONTRIB.md
 .snippets
