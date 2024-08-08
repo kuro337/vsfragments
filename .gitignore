@@ -7,6 +7,9 @@ tests/FLOWS_TEST.md
 zig-out-bkp
 *node_modules*
 ./zig-cache
+.zig-cache
+
+dependencies/**
 
 README_CONTRIB.md
 .snippets
