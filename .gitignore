@@ -10,7 +10,7 @@ zig-out-bkp
 .zig-cache
 
 dependencies/**
-
+result
 README_CONTRIB.md
 .snippets
 structs/snippet_old.zig
