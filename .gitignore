@@ -1,7 +1,7 @@
 zig-cache
 zig-out
 APP_README.md
-mock
+# mock
 tests/FLOWS_TEST.md
 .vscode
 zig-out-bkp

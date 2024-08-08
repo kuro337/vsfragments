@@ -1,3 +1,10 @@
+#  nix build '.?submodules=1#'
+
+# git submodule add https://github.com/username/repo-name.git path/to/submodule
+
+# git clone git@github.com:Hejsil/zig-clap.git
+# git submodule add git@github.com:Hejsil/zig-clap.git dependencies/zig-clap
+
 {
   description = "A flake for building and testing with Zig";
   inputs = {
@@ -21,11 +28,28 @@
           name = "zig-project";
           src = self;
           nativeBuildInputs = [ pkgs.zig ];
-          buildPhase = "zig build";
-          checkPhase = "zig build test --summary all";
+
+          buildPhase = ''
+            # Resolves ReadOnly errors
+              export HOME=$TMPDIR
+
+              zig build
+              if [ ! -d zig-out/bin ]; then
+                echo "zig-out/bin directory not found. Build may have failed."
+                exit 1
+              fi
+              echo 'bin contents'
+              ls zig-out/bin/
+              echo 'bin contents printed'
+          '';
+
+          checkPhase = ''
+            zig build test --summary all --global-cache-dir $PWD/zig-cache --cache-dir $PWD/zig-cache --verbose
+          '';
+
           installPhase = ''
             mkdir -p $out/bin
-            cp zig-out/bin/* $out/bin/
+            cp -r zig-out/bin/* $out/bin/
           '';
         };
 

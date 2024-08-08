@@ -148,8 +148,8 @@ test "JSON Validation Tests" {
 test "Validate File" {
     const allocator = std.testing.allocator;
 
-    const valid_file = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/validsnippet.json";
-    const invalid_file = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/tests/mock/invalidsnippet.json";
+    const valid_file = "tests/mock/validsnippet.json";
+    const invalid_file = "tests/mock/invalidsnippet.json";
 
     const valid_content = try readFile(allocator, valid_file);
     const invalid_content = try readFile(allocator, invalid_file);

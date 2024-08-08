@@ -1,3 +1,11 @@
+
+// Note: compile clap before building
+// cd dependencies/zig-clap && git pull && zig build
+// zig build test --summary all --global-cache-dir $PWD/zig-cache
+
+// zig build test --summary all --global-cache-dir $PWD/zig-cache --cache-dir $PWD/zig-cache
+
+
 const std = @import("std");
 
 const CompileStep = std.Build.Step.Compile;
@@ -144,7 +152,9 @@ fn addCommonModules(b: *Build, exe: *CompileStep) void {
     } });
 
     const clap = b.addModule("clap", .{
-        .root_source_file = b.path ( "../zig-clap/clap.zig" ),
+         .root_source_file = b.path ( "dependencies/zig-clap/clap.zig" ),
+        //.root_source_file = b.path ( "../zig-clap/clap.zig" ),
+
     });
 
     const modify_snippet = b.addModule("modify_snippet", .{

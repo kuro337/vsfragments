@@ -5,7 +5,7 @@ const absolute_path = "/Users/kuro/Documents/Code/Zig/FileIO/vsfragments/";
 test "Read Func with newline" {
     const allocator = std.testing.allocator;
 
-    const INPUT_FILE_PATH = absolute_path ++ "tests/MOCK_PARSER_DATA/inline/input.txt";
+    const INPUT_FILE_PATH =  "tests/MOCK_PARSER_DATA/inline/input.txt";
 
     const lines = try readLinesFromFile(allocator, INPUT_FILE_PATH);
     const full_file_content = try readFile(allocator, INPUT_FILE_PATH);
@@ -27,7 +27,7 @@ test "Read Func with newline" {
 
 test "inline test" {
     const allocator = std.testing.allocator;
-    const INPUT_FILE_PATH = absolute_path ++ "tests/MOCK_PARSER_DATA/inline/input.txt";
+    const INPUT_FILE_PATH =  "tests/MOCK_PARSER_DATA/inline/input.txt";
 
     const full_file_content = try readFile(allocator, INPUT_FILE_PATH);
     defer allocator.free(full_file_content);

@@ -1,0 +1,65 @@
+{
+	"VSCode Code Snippet": {
+		"prefix": "prefix_insertSnippet",
+		"body": [
+			"# Threading OS Threads",
+			"",
+			"```rust",
+			"const std = @import(\"std\");",
+			"const expect = std.testing.expect;",
+			"const print = std.debug.print;",
+			"const ArrayList = std.ArrayList;",
+			"const test_allocator = std.testing.allocator;",
+			"const eql = std.mem.eql;",
+			"const Thread = std.Thread;",
+			"",
+			"pub fn main() !void {",
+			"   \tstd.debug.print(\"{s}\\n\", .{\"Hello, world!\"});",
+			"}",
+			"```"
+		],
+		"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."
+	},
+	"VSCode Code Snippet": {
+		"prefix": "prefix_insertSnippet",
+		"body": [
+			"# Threading OS Threads",
+			"",
+			"```rust",
+			"const std = @import(\"std\");",
+			"const expect = std.testing.expect;",
+			"const print = std.debug.print;",
+			"const ArrayList = std.ArrayList;",
+			"const test_allocator = std.testing.allocator;",
+			"const eql = std.mem.eql;",
+			"const Thread = std.Thread;",
+			"",
+			"pub fn main() !void {",
+			"   \tstd.debug.print(\"{s}\\n\", .{\"Hello, world!\"});",
+			"}",
+			"```"
+		],
+		"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."
+	},
+	"VSCode Code Snippet": {
+		"prefix": "prefix_insertSnippet",
+		"body": [
+			"# Threading OS Threads",
+			"",
+			"```rust",
+			"const std = @import(\"std\");",
+			"const expect = std.testing.expect;",
+			"const print = std.debug.print;",
+			"const ArrayList = std.ArrayList;",
+			"const test_allocator = std.testing.allocator;",
+			"const eql = std.mem.eql;",
+			"const Thread = std.Thread;",
+			"",
+			"pub fn main() !void {",
+			"   \tstd.debug.print(\"{s}\\n\", .{\"Hello, world!\"});",
+			"}",
+			"```"
+		],
+		"description": "Some Useful Snippet Descriptor. Pass --desc <string> to set explicitly."
+	}
+}
